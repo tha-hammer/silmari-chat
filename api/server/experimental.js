@@ -10,7 +10,8 @@ const express = require('express');
 const passport = require('passport');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
-const { logger, runAsSystem } = require('@librechat/data-schemas');
+const mongoose = require('mongoose');
+const { logger, runAsSystem, ensureClerkIndexes } = require('@librechat/data-schemas');
 const mongoSanitize = require('express-mongo-sanitize');
 const {
   isEnabled,
@@ -25,6 +26,8 @@ const {
   preAuthTenantMiddleware,
   configureServerTimeouts,
   configureMessageFilterRegexValidator,
+  resolveClerkAuthConfig,
+  ensureClerkStartupReady,
 } = require('@librechat/api');
 const { connectDb, indexSync } = require('~/db');
 const initializeOAuthReconnectManager = require('./services/initializeOAuthReconnectManager');
@@ -49,6 +52,8 @@ const staticCache = require('./utils/staticCache');
 const optionalJwtAuth = require('./middleware/optionalJwtAuth');
 const noIndex = require('./middleware/noIndex');
 const routes = require('./routes');
+const mountAuthRoute = require('./routes/mountAuth');
+const mountClerkWebhook = require('./routes/mountClerkWebhook');
 
 /** Reject messageFilter PII patterns the RE2 runtime engine cannot compile, at config load. */
 configureMessageFilterRegexValidator();
@@ -291,6 +296,18 @@ if (cluster.isMaster) {
       logger.error(`[Worker ${process.pid}][indexSync] Background sync failed:`, err);
     });
 
+    /**
+     * Fail closed before this worker accepts any traffic; mirrors
+     * `server/index.js`. Caught by `startServer().catch(...)` below, which
+     * exits the worker rather than serving requests against a partially
+     * migrated deployment.
+     */
+    const clerkAuthConfig = resolveClerkAuthConfig(process.env);
+    await ensureClerkStartupReady(clerkAuthConfig, {
+      ensureClerkIndexes,
+      connection: mongoose.connection,
+    });
+
     app.disable('x-powered-by');
     app.set('trust proxy', trusted_proxy);
 
@@ -359,6 +376,7 @@ if (cluster.isMaster) {
 
     /** Middleware */
     app.use(noIndex);
+    mountClerkWebhook(app, routes);
     app.use(express.json({ limit: '3mb' }));
     app.use(express.urlencoded({ extended: true, limit: '3mb' }));
 
@@ -414,7 +432,7 @@ if (cluster.isMaster) {
 
     /** Routes */
     app.use('/oauth', routes.oauth);
-    app.use('/api/auth', routes.auth);
+    mountAuthRoute(app, routes, preAuthTenantMiddleware);
     app.use('/api/admin', routes.adminAuth);
     app.use('/api/admin/skills', routes.adminSkills);
     app.use('/api/actions', routes.actions);

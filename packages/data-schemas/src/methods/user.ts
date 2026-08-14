@@ -1,4 +1,4 @@
-import mongoose, { FilterQuery } from 'mongoose';
+import mongoose, { type ClientSession, type FilterQuery } from 'mongoose';
 import {
   AUTH_USER_DOC_BY_ID_PREFIX,
   CacheKeys,
@@ -16,6 +16,27 @@ interface UserMethodDeps {
   getCache?: (key: string) => CacheStore | undefined;
 }
 
+export interface LinkClerkIdentityInput {
+  userId: string;
+  clerkId: string;
+  tenantId?: string;
+}
+
+export type LinkClerkIdentityResult =
+  | { status: 'linked'; user: IUser }
+  | { status: 'already_linked'; user: IUser }
+  | { status: 'conflict' }
+  | { status: 'not_found' };
+
+export interface TombstoneClerkUsersInput {
+  clerkId: string;
+  deletedAt: Date;
+}
+
+export type TombstoneClerkUsersOptions =
+  | { session: ClientSession; deferCacheInvalidation: true }
+  | { session?: never; deferCacheInvalidation?: false };
+
 function isAuthUserDocCacheEnabled(): boolean {
   return process.env.AUTH_USER_CACHE_MODE === 'on';
 }
@@ -28,6 +49,7 @@ export function createUserMethods(
   findUser: (
     searchCriteria: FilterQuery<IUser>,
     fieldsToSelect?: string | string[] | null,
+    options?: { session?: ClientSession },
   ) => Promise<IUser | null>;
   findUsers: (
     searchCriteria: FilterQuery<IUser>,
@@ -41,7 +63,16 @@ export function createUserMethods(
     disableTTL?: boolean,
     returnUser?: boolean,
   ) => Promise<mongoose.Types.ObjectId | Partial<IUser>>;
-  updateUser: (userId: string, updateData: Partial<IUser>) => Promise<IUser | null>;
+  updateUser: (
+    userId: string,
+    updateData: Omit<Partial<IUser>, 'clerkId' | 'clerkDeletedAt'>,
+  ) => Promise<IUser | null>;
+  linkClerkIdentity: (input: LinkClerkIdentityInput) => Promise<LinkClerkIdentityResult>;
+  tombstoneClerkUsers: (
+    input: TombstoneClerkUsersInput,
+    options?: TombstoneClerkUsersOptions,
+  ) => Promise<readonly string[]>;
+  invalidateAuthUserDocCache: (userId: string) => Promise<void>;
   acceptTerms: (userId: string) => Promise<IUser | null>;
   searchUsers: ({
     searchPattern,
@@ -71,6 +102,7 @@ export function createUserMethods(
       githubId?: string;
       discordId?: string;
       appleId?: string;
+      clerkId?: string;
       plugins?: string[];
       openidIssuer?: string;
       twoFactorEnabled?: boolean;
@@ -151,12 +183,16 @@ export function createUserMethods(
   async function findUser(
     searchCriteria: FilterQuery<IUser>,
     fieldsToSelect?: string | string[] | null,
+    options?: { session?: ClientSession },
   ): Promise<IUser | null> {
     const User = mongoose.models.User as mongoose.Model<IUser>;
     const normalizedCriteria = normalizeEmailInCriteria(searchCriteria);
     const query = User.findOne(normalizedCriteria);
     if (fieldsToSelect) {
       query.select(fieldsToSelect);
+    }
+    if (options?.session) {
+      query.session(options.session);
     }
     return await query.lean<IUser>();
   }
@@ -257,8 +293,19 @@ export function createUserMethods(
 
   /**
    * Update a user with new data without overwriting existing properties.
+   * `clerkId`/`clerkDeletedAt` are managed exclusively by the dedicated
+   * Clerk link/tombstone methods — rejected here even for untyped (legacy JS)
+   * callers, since the type-level `Omit` only protects typed call sites.
    */
-  async function updateUser(userId: string, updateData: Partial<IUser>): Promise<IUser | null> {
+  async function updateUser(
+    userId: string,
+    updateData: Omit<Partial<IUser>, 'clerkId' | 'clerkDeletedAt'>,
+  ): Promise<IUser | null> {
+    if ('clerkId' in updateData || 'clerkDeletedAt' in updateData) {
+      throw new Error(
+        '[updateUser] clerkId/clerkDeletedAt are managed fields and cannot be set via updateUser',
+      );
+    }
     const User = mongoose.models.User;
     const updateOperation = {
       $set: updateData,
@@ -292,6 +339,146 @@ export function createUserMethods(
     } catch {
       // Cache invalidation must not make a user update fail.
     }
+  }
+
+  function clerkTenantScope(tenantId: string | undefined): FilterQuery<IUser> {
+    return tenantId ? { tenantId } : { tenantId: { $exists: false } };
+  }
+
+  function isDuplicateKeyError(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error != null &&
+      'code' in error &&
+      (error as { code?: unknown }).code === 11000
+    );
+  }
+
+  function requireNonBlankClerkId(clerkId: string): string {
+    const normalized = typeof clerkId === 'string' ? clerkId.trim() : '';
+    if (!normalized) {
+      throw new Error('[Clerk identity] clerkId must be a non-empty string');
+    }
+    return normalized;
+  }
+
+  async function resolveClerkLinkResult(
+    input: LinkClerkIdentityInput,
+    clerkId: string,
+  ): Promise<LinkClerkIdentityResult> {
+    const User = mongoose.models.User as mongoose.Model<IUser>;
+    const tenantScope = clerkTenantScope(input.tenantId);
+    const [userByClerkId, targetUser] = await Promise.all([
+      User.findOne({ clerkId, ...tenantScope })
+        .select('+clerkDeletedAt')
+        .lean<IUser>(),
+      User.findOne({ _id: input.userId, ...tenantScope })
+        .select('+clerkDeletedAt')
+        .lean<IUser>(),
+    ]);
+
+    if (!targetUser) {
+      return { status: 'not_found' };
+    }
+    if (targetUser.clerkDeletedAt != null) {
+      return { status: 'conflict' };
+    }
+    if (targetUser.clerkId === clerkId) {
+      await invalidateAuthUserDocCache(targetUser._id.toString());
+      return { status: 'already_linked', user: targetUser };
+    }
+    if (targetUser.clerkId != null || userByClerkId) {
+      return { status: 'conflict' };
+    }
+    return { status: 'conflict' };
+  }
+
+  async function linkClerkIdentity(
+    input: LinkClerkIdentityInput,
+  ): Promise<LinkClerkIdentityResult> {
+    const clerkId = requireNonBlankClerkId(input.clerkId);
+    const User = mongoose.models.User as mongoose.Model<IUser>;
+    const tenantScope = clerkTenantScope(input.tenantId);
+
+    try {
+      const linkedUser = await User.findOneAndUpdate(
+        {
+          _id: input.userId,
+          ...tenantScope,
+          clerkId: { $exists: false },
+          clerkDeletedAt: { $exists: false },
+        },
+        { $set: { clerkId } },
+        { new: true, runValidators: true },
+      )
+        .select('+clerkDeletedAt')
+        .lean<IUser>();
+      if (!linkedUser) {
+        return resolveClerkLinkResult(input, clerkId);
+      }
+
+      await invalidateAuthUserDocCache(linkedUser._id.toString());
+      return { status: 'linked', user: linkedUser };
+    } catch (error) {
+      if (!isDuplicateKeyError(error)) {
+        throw error;
+      }
+      return resolveClerkLinkResult(input, clerkId);
+    }
+  }
+
+  function getTombstoneTransactionOptions(options: TombstoneClerkUsersOptions | undefined): {
+    session?: ClientSession;
+    deferCacheInvalidation: boolean;
+  } {
+    const session = options && 'session' in options ? options.session : undefined;
+    const deferCacheInvalidation = options?.deferCacheInvalidation === true;
+    if (session && !deferCacheInvalidation) {
+      throw new Error(
+        '[tombstoneClerkUsers] transaction callers must set deferCacheInvalidation: true',
+      );
+    }
+    if (!session && deferCacheInvalidation) {
+      throw new Error('[tombstoneClerkUsers] deferred cache invalidation requires a session');
+    }
+    return { session, deferCacheInvalidation };
+  }
+
+  async function tombstoneClerkUsers(
+    input: TombstoneClerkUsersInput,
+    options?: TombstoneClerkUsersOptions,
+  ): Promise<readonly string[]> {
+    const clerkId = requireNonBlankClerkId(input.clerkId);
+    if (!(input.deletedAt instanceof Date) || Number.isNaN(input.deletedAt.getTime())) {
+      throw new Error('[tombstoneClerkUsers] deletedAt must be a valid Date');
+    }
+
+    const { session, deferCacheInvalidation } = getTombstoneTransactionOptions(options);
+    const User = mongoose.models.User as mongoose.Model<IUser>;
+    const candidatesQuery = User.find({ clerkId }, { _id: 1 });
+    if (session) {
+      candidatesQuery.session(session);
+    }
+    const candidates = await candidatesQuery.lean<Array<Pick<IUser, '_id'>>>();
+    const userIds = candidates.map((candidate) => candidate._id.toString());
+    if (userIds.length === 0) {
+      return [];
+    }
+
+    await User.updateMany(
+      {
+        _id: { $in: candidates.map((candidate) => candidate._id) },
+        clerkId,
+        clerkDeletedAt: { $exists: false },
+      },
+      { $set: { clerkDeletedAt: input.deletedAt } },
+      session ? { session, runValidators: true } : { runValidators: true },
+    );
+
+    if (!deferCacheInvalidation) {
+      await Promise.all(userIds.map((userId) => invalidateAuthUserDocCache(userId)));
+    }
+    return userIds;
   }
 
   /**
@@ -388,6 +575,7 @@ export function createUserMethods(
         username: user.username,
         provider: user.provider,
         email: user.email,
+        ...(user.tenantId ? { tenantId: user.tenantId } : {}),
       },
       secret: process.env.JWT_SECRET,
       expirationTime: expires / 1000,
@@ -462,6 +650,7 @@ export function createUserMethods(
       githubId?: string;
       discordId?: string;
       appleId?: string;
+      clerkId?: string;
       plugins?: string[];
       openidIssuer?: string;
       twoFactorEnabled?: boolean;
@@ -600,6 +789,9 @@ export function createUserMethods(
     countUsers,
     createUser,
     updateUser,
+    linkClerkIdentity,
+    tombstoneClerkUsers,
+    invalidateAuthUserDocCache,
     acceptTerms,
     searchUsers,
     getUserById,

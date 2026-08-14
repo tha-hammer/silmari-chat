@@ -9,6 +9,10 @@ import {
   normalizePath,
   recordAgentStartupMilestone,
   recordAgentStartupResult,
+  recordClerkProfileRequest,
+  recordClerkIdentityResolution,
+  recordClerkSessionOutcome,
+  recordClerkTokenVerification,
   recordGenerationJob,
   recordGenerationStreamResumePendingEvents,
   recordGenerationStreamSubscription,
@@ -273,6 +277,59 @@ describe('createMetrics', () => {
     expect(response.text).toMatch(/openid_user_lookup_total\{result="found"\} 1/);
     expect(response.text).toMatch(/openid_user_lookup_duration_seconds_count\{result="found"\} 1/);
     expect(response.text).toMatch(/openid_user_lookup_duration_seconds_sum\{result="found"\} 0.2/);
+  });
+
+  it('tracks Clerk verification and profile latency with bounded outcome labels', async () => {
+    const app = express();
+    process.env.METRICS_SECRET = 'test-secret';
+    const { metricsRouter } = createMetrics();
+    app.use('/metrics', metricsRouter);
+
+    recordClerkTokenVerification('success', 0.01);
+    recordClerkTokenVerification('invalid', 0.02);
+    recordClerkProfileRequest('success', 0.03);
+    recordClerkProfileRequest('forbidden', 0.04);
+    recordClerkProfileRequest('not_found', 0.05);
+    recordClerkProfileRequest('rate_limited', 0.06);
+    recordClerkProfileRequest('unavailable', 0.07);
+    recordClerkIdentityResolution('linked', 'none');
+    recordClerkIdentityResolution('already_linked', 'create_duplicate');
+    recordClerkSessionOutcome('success');
+    recordClerkSessionOutcome('two_factor_pending');
+    recordClerkSessionOutcome('replay');
+    recordClerkSessionOutcome('rollback');
+    recordClerkSessionOutcome('post_commit_failure');
+
+    const response = await request(app)
+      .get('/metrics')
+      .set('Authorization', 'Bearer test-secret')
+      .expect(200);
+
+    expect(response.text).toMatch(/clerk_token_verifications_total\{outcome="success"\} 1/);
+    expect(response.text).toMatch(/clerk_token_verifications_total\{outcome="invalid"\} 1/);
+    expect(response.text).toMatch(
+      /clerk_token_verification_duration_seconds_sum\{outcome="success"\} 0.01/,
+    );
+    expect(response.text).toMatch(/clerk_profile_requests_total\{outcome="forbidden"\} 1/);
+    expect(response.text).toMatch(/clerk_profile_requests_total\{outcome="not_found"\} 1/);
+    expect(response.text).toMatch(/clerk_profile_requests_total\{outcome="rate_limited"\} 1/);
+    expect(response.text).toMatch(/clerk_profile_requests_total\{outcome="unavailable"\} 1/);
+    expect(response.text).toMatch(
+      /clerk_profile_request_duration_seconds_sum\{outcome="success"\} 0.03/,
+    );
+    expect(response.text).toMatch(
+      /clerk_identity_resolutions_total\{outcome="linked",convergence="none"\} 1/,
+    );
+    expect(response.text).toMatch(
+      /clerk_identity_resolutions_total\{outcome="already_linked",convergence="create_duplicate"\} 1/,
+    );
+    expect(response.text).toMatch(/clerk_session_outcomes_total\{outcome="success"\} 1/);
+    expect(response.text).toMatch(/clerk_session_outcomes_total\{outcome="two_factor_pending"\} 1/);
+    expect(response.text).toMatch(/clerk_session_outcomes_total\{outcome="replay"\} 1/);
+    expect(response.text).toMatch(/clerk_session_outcomes_total\{outcome="rollback"\} 1/);
+    expect(response.text).toMatch(
+      /clerk_session_outcomes_total\{outcome="post_commit_failure"\} 1/,
+    );
   });
 
   it('tracks Redis operation outcomes and latency by use case', async () => {

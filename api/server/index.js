@@ -9,7 +9,8 @@ const passport = require('passport');
 const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
-const { logger, runAsSystem } = require('@librechat/data-schemas');
+const mongoose = require('mongoose');
+const { logger, runAsSystem, ensureClerkIndexes } = require('@librechat/data-schemas');
 const {
   isEnabled,
   apiNotFound,
@@ -33,6 +34,8 @@ const {
   setupGracefulShutdown,
   updateInterfacePermissions,
   configureMessageFilterRegexValidator,
+  resolveClerkAuthConfig,
+  ensureClerkStartupReady,
 } = require('@librechat/api');
 const { connectDb, indexSync } = require('~/db');
 const {
@@ -56,6 +59,8 @@ const { getAppConfig } = require('./services/Config');
 const staticCache = require('./utils/staticCache');
 const noIndex = require('./middleware/noIndex');
 const routes = require('./routes');
+const mountAuthRoute = require('./routes/mountAuth');
+const mountClerkWebhook = require('./routes/mountClerkWebhook');
 
 /** Reject messageFilter PII patterns the RE2 runtime engine cannot compile, at config load. */
 configureMessageFilterRegexValidator();
@@ -121,6 +126,18 @@ const startServer = async () => {
   logger.info('Connected to MongoDB');
   indexSync().catch((err) => {
     logger.error('[indexSync] Background sync failed:', err);
+  });
+
+  /**
+   * Fail closed before the server accepts any traffic: an invalid Clerk
+   * configuration or a failed production index assurance rejects here and is
+   * caught by `startServer().catch(...)` below, which exits the process
+   * rather than serving requests against a partially-migrated deployment.
+   */
+  const clerkAuthConfig = resolveClerkAuthConfig(process.env);
+  await ensureClerkStartupReady(clerkAuthConfig, {
+    ensureClerkIndexes,
+    connection: mongoose.connection,
   });
 
   app.disable('x-powered-by');
@@ -207,6 +224,7 @@ const startServer = async () => {
   app.use('/api/agents/chat', agentStartupIngressMiddleware);
   app.use(metricsMiddleware);
   app.use(noIndex);
+  mountClerkWebhook(app, routes);
   app.use(express.json({ limit: '3mb' }));
   app.use(express.urlencoded({ extended: true, limit: '3mb' }));
   app.use(handleJsonParseError);
@@ -269,7 +287,7 @@ const startServer = async () => {
    * The reverse proxy / auth gateway sets `X-Tenant-Id` header for multi-tenant deployments. */
   app.use('/oauth', preAuthTenantMiddleware, routes.oauth);
   /* API Endpoints */
-  app.use('/api/auth', preAuthTenantMiddleware, routes.auth);
+  mountAuthRoute(app, routes, preAuthTenantMiddleware);
   app.use('/api/admin', routes.adminAuth);
   app.use('/api/admin/config', routes.adminConfig);
   app.use('/api/admin/langfuse', routes.adminLangfuse);

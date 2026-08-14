@@ -1,3 +1,4 @@
+import type { Model } from 'mongoose';
 import type * as t from '~/types/session';
 import { signPayload, hashToken } from '~/crypto';
 import logger from '~/config/winston';
@@ -30,12 +31,38 @@ export function createSessionMethods(mongoose: typeof import('mongoose')): {
     options?: t.UpdateExpirationOptions,
   ) => Promise<t.ISession>;
   countActiveSessions: (userId: string) => Promise<number>;
-  generateRefreshToken: (session: t.ISession) => Promise<string>;
+  generateRefreshToken: (
+    session: t.ISession,
+    options?: { dbSession?: import('mongoose').ClientSession },
+  ) => Promise<string>;
   deleteAllUserSessions: (
     userId: string | { userId: string },
     options?: t.DeleteAllSessionsOptions,
   ) => Promise<{ deletedCount?: number }>;
+  findClerkSessionIdsByClerkUserId: (
+    clerkUserId: string,
+    options?: t.ClerkSessionLifecycleOptions,
+  ) => Promise<readonly string[]>;
+  deleteSessionsByClerkSessionId: (
+    clerkSessionId: string,
+    options?: t.ClerkSessionLifecycleOptions,
+  ) => Promise<{ deletedCount?: number }>;
+  deleteSessionsByClerkUserId: (
+    clerkUserId: string,
+    options?: t.ClerkSessionLifecycleOptions,
+  ) => Promise<{ deletedCount?: number }>;
 } {
+  function sessionModel(): Model<t.ISession> {
+    return mongoose.models.Session as Model<t.ISession>;
+  }
+
+  function requireClerkIdentifier(value: string): string {
+    if (value.trim().length === 0) {
+      throw new SessionError('Clerk provider identifier is required', 'INVALID_CLERK_ID');
+    }
+    return value;
+  }
+
   /**
    * Creates a new session for a user
    */
@@ -47,15 +74,29 @@ export function createSessionMethods(mongoose: typeof import('mongoose')): {
       throw new SessionError('User ID is required', 'INVALID_USER_ID');
     }
 
-    const expiresIn = options.expiresIn ?? DEFAULT_REFRESH_TOKEN_EXPIRY;
-
     try {
       const Session = mongoose.models.Session;
-      const currentSession = new Session({
-        user: userId,
-        expiration: options.expiration || new Date(Date.now() + expiresIn),
+      const currentSession = new Session(
+        options.clerk
+          ? {
+              user: userId,
+              expiration: options.clerk.absoluteExpiresAt,
+              authProvider: options.clerk.authProvider,
+              clerkSessionId: options.clerk.clerkSessionId,
+              clerkTokenId: options.clerk.clerkTokenId,
+              clerkUserId: options.clerk.clerkUserId,
+              absoluteExpiresAt: options.clerk.absoluteExpiresAt,
+            }
+          : {
+              user: userId,
+              expiration:
+                options.expiration ||
+                new Date(Date.now() + (options.expiresIn ?? DEFAULT_REFRESH_TOKEN_EXPIRY)),
+            },
+      );
+      const refreshToken = await generateRefreshToken(currentSession, {
+        dbSession: options.dbSession,
       });
-      const refreshToken = await generateRefreshToken(currentSession);
 
       return { session: currentSession, refreshToken };
     } catch (error) {
@@ -104,8 +145,16 @@ export function createSessionMethods(mongoose: typeof import('mongoose')): {
         query._id = sessionId;
       }
 
-      // Add expiration check to only return valid sessions
-      query.expiration = { $gt: new Date() };
+      if (params.tenantId) {
+        query.tenantId = params.tenantId;
+      }
+
+      // Add expiration check to only return valid sessions, unless the caller
+      // explicitly opts into seeing an already-expired session (e.g. to
+      // identify and delete an expired Clerk Session at its absolute deadline).
+      if (!options.includeExpired) {
+        query.expiration = { $gt: new Date() };
+      }
 
       const sessionQuery = Session.findOne(query);
 
@@ -223,10 +272,54 @@ export function createSessionMethods(mongoose: typeof import('mongoose')): {
     }
   }
 
+  async function findClerkSessionIdsByClerkUserId(
+    clerkUserId: string,
+    options: t.ClerkSessionLifecycleOptions = {},
+  ): Promise<readonly string[]> {
+    const providerId = requireClerkIdentifier(clerkUserId);
+    const query = sessionModel()
+      .find({ clerkUserId: providerId, authProvider: 'clerk' })
+      .select({ _id: 0, clerkSessionId: 1 });
+    if (options.session) {
+      query.session(options.session);
+    }
+
+    const sessions = await query.lean<Array<Pick<t.ISession, 'clerkSessionId'>>>();
+    const sessionIds = sessions.flatMap((session) =>
+      typeof session.clerkSessionId === 'string' ? [session.clerkSessionId] : [],
+    );
+    return [...new Set(sessionIds)].sort();
+  }
+
+  async function deleteSessionsByClerkSessionId(
+    clerkSessionId: string,
+    options: t.ClerkSessionLifecycleOptions = {},
+  ): Promise<{ deletedCount?: number }> {
+    const providerId = requireClerkIdentifier(clerkSessionId);
+    return sessionModel().deleteMany(
+      { clerkSessionId: providerId, authProvider: 'clerk' },
+      { session: options.session },
+    );
+  }
+
+  async function deleteSessionsByClerkUserId(
+    clerkUserId: string,
+    options: t.ClerkSessionLifecycleOptions = {},
+  ): Promise<{ deletedCount?: number }> {
+    const providerId = requireClerkIdentifier(clerkUserId);
+    return sessionModel().deleteMany(
+      { clerkUserId: providerId, authProvider: 'clerk' },
+      { session: options.session },
+    );
+  }
+
   /**
    * Generates a refresh token for a session
    */
-  async function generateRefreshToken(session: t.ISession): Promise<string> {
+  async function generateRefreshToken(
+    session: t.ISession,
+    options: { dbSession?: import('mongoose').ClientSession } = {},
+  ): Promise<string> {
     if (!session || !session.user) {
       throw new SessionError('Invalid session object', 'INVALID_SESSION');
     }
@@ -240,17 +333,31 @@ export function createSessionMethods(mongoose: typeof import('mongoose')): {
         session.expiration = new Date(expiresIn);
       }
 
+      /**
+       * jsonwebtoken's `iat` claim is `floor(Date.now() / 1000)` at sign time,
+       * so `exp = iat + expirationTime` only lands exactly on
+       * `floor(expiresIn / 1000)` when expirationTime is computed the same
+       * way: flooring each side to whole seconds before subtracting, not
+       * flooring the millisecond difference. The latter is off by one
+       * second whenever the deadline's millisecond remainder is smaller
+       * than "now"'s.
+       */
+      const expirationTime = Math.max(
+        0,
+        Math.floor(expiresIn / 1000) - Math.floor(Date.now() / 1000),
+      );
+
       const refreshToken = await signPayload({
         payload: {
           id: session.user,
           sessionId: session._id,
         },
         secret: process.env.JWT_REFRESH_SECRET!,
-        expirationTime: Math.floor((expiresIn - Date.now()) / 1000),
+        expirationTime,
       });
 
       session.refreshTokenHash = await hashToken(refreshToken);
-      await session.save();
+      await session.save({ session: options.dbSession });
 
       return refreshToken;
     } catch (error) {
@@ -288,6 +395,9 @@ export function createSessionMethods(mongoose: typeof import('mongoose')): {
     countActiveSessions,
     generateRefreshToken,
     deleteAllUserSessions,
+    findClerkSessionIdsByClerkUserId,
+    deleteSessionsByClerkSessionId,
+    deleteSessionsByClerkUserId,
   };
 }
 

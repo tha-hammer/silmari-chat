@@ -62,7 +62,7 @@ describe('Telemetry wiring', () => {
   it('mounts telemetry middleware after static assets and before routes', () => {
     const telemetryMiddlewareIndex = source.indexOf('app.use(telemetry.telemetryMiddleware);');
     const staticAssetsIndex = source.indexOf('app.use(staticCache(appConfig.paths.assets));');
-    const apiRoutesIndex = source.indexOf("app.use('/api/auth'");
+    const apiRoutesIndex = source.indexOf('mountAuthRoute(app, routes, preAuthTenantMiddleware);');
 
     expect(telemetryMiddlewareIndex).toBeGreaterThan(-1);
     expect(staticAssetsIndex).toBeGreaterThan(-1);
@@ -147,6 +147,21 @@ describe('Startup readiness wiring', () => {
     expect(readinessGateIndex).toBeGreaterThan(-1);
     expect(agentsRouteIndex).toBeGreaterThan(-1);
     expect(readinessGateIndex).toBeLessThan(agentsRouteIndex);
+  });
+
+  it('awaits the Clerk startup gate after connecting to MongoDB and before the server listens', () => {
+    const connectDbIndex = source.indexOf('await connectDb();');
+    const clerkGateIndex = source.indexOf('await ensureClerkStartupReady(clerkAuthConfig');
+    const listenIndex = source.indexOf('const server = app.listen');
+    const serverReadyIndex = source.indexOf('serverReady = true;');
+
+    expect(connectDbIndex).toBeGreaterThan(-1);
+    expect(clerkGateIndex).toBeGreaterThan(-1);
+    expect(listenIndex).toBeGreaterThan(-1);
+    expect(serverReadyIndex).toBeGreaterThan(-1);
+    expect(connectDbIndex).toBeLessThan(clerkGateIndex);
+    expect(clerkGateIndex).toBeLessThan(listenIndex);
+    expect(clerkGateIndex).toBeLessThan(serverReadyIndex);
   });
 });
 

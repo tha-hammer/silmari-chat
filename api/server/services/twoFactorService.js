@@ -247,9 +247,25 @@ const generate2FATempToken = (userId) => {
   return sign({ userId, twoFAPending: true }, process.env.JWT_SECRET, { expiresIn: '5m' });
 };
 
+/**
+ * Generic temporary-JWT signer with no knowledge of any specific provider's
+ * claim shape or deadline policy: the caller supplies the exact payload and
+ * lifetime. Used by the typed Clerk session module (Fixed Contract 7) to
+ * issue a tenant-bound pending-2FA token without any Clerk-specific decision
+ * living in legacy JavaScript.
+ * @param {Record<string, unknown>} payload
+ * @param {number} expiresInSeconds
+ * @returns {string}
+ */
+const signTwoFactorTempToken = (payload, expiresInSeconds) => {
+  const { sign } = require('jsonwebtoken');
+  return sign(payload, process.env.JWT_SECRET, { expiresIn: expiresInSeconds });
+};
+
 module.exports = {
   verifyOTPOrBackupCode,
   generate2FATempToken,
+  signTwoFactorTempToken,
   generateBackupCodes,
   generateTOTPSecret,
   verifyBackupCode,

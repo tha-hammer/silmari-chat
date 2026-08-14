@@ -1332,6 +1332,58 @@ describe('CloudFront cookie integration', () => {
 
       expect(result).toBe('mock-access-token');
     });
+
+    it('uses the full configured session duration for a freshly created (local) session', async () => {
+      const res = mockResponse();
+
+      await setAuthTokens('user-123', res);
+
+      expect(generateToken).toHaveBeenCalledWith({ _id: 'user-123', tenantId: 'tenantA' }, 900000);
+    });
+
+    it("caps the access token duration to the explicit session's remaining deadline", async () => {
+      const explicitSession = { _id: 'session-1', expiration: new Date(Date.now() + 60000) };
+      const res = mockResponse();
+
+      await setAuthTokens('user-123', res, explicitSession);
+
+      expect(generateToken).toHaveBeenCalledTimes(1);
+      const [user, sessionExpiry] = generateToken.mock.calls[0];
+      expect(user).toEqual({ _id: 'user-123', tenantId: 'tenantA' });
+      // Configured default is 900000ms; the explicit session expires in ~60000ms, so it must win.
+      expect(sessionExpiry).toBeGreaterThan(0);
+      expect(sessionExpiry).toBeLessThanOrEqual(60000);
+    });
+
+    it('does not cap the access token when the explicit session outlives the configured duration', async () => {
+      const explicitSession = { _id: 'session-1', expiration: new Date(Date.now() + 999999999) };
+      const res = mockResponse();
+
+      await setAuthTokens('user-123', res, explicitSession);
+
+      const [, sessionExpiry] = generateToken.mock.calls[0];
+      expect(sessionExpiry).toBe(900000);
+    });
+
+    it('never generates a negative session duration for an already-expired explicit session', async () => {
+      const explicitSession = { _id: 'session-1', expiration: new Date(Date.now() - 1000) };
+      const res = mockResponse();
+
+      await setAuthTokens('user-123', res, explicitSession);
+
+      const [, sessionExpiry] = generateToken.mock.calls[0];
+      expect(sessionExpiry).toBe(0);
+    });
+
+    it('regenerates the refresh token on the explicit session object itself (real setAuthTokens, no bypass)', async () => {
+      const explicitSession = { _id: 'session-1', expiration: new Date(Date.now() + 60000) };
+      const res = mockResponse();
+
+      await setAuthTokens('user-123', res, explicitSession);
+
+      expect(generateRefreshToken).toHaveBeenCalledWith(explicitSession);
+      expect(createSession).not.toHaveBeenCalled();
+    });
   });
 });
 
