@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import { Providers } from '@librechat/agents';
 import {
   ErrorTypes,
@@ -15,6 +17,7 @@ import type {
   EndpointTokenConfig,
   AnthropicModelOptions,
   ClaudeAgentSdkInitializeResult,
+  ServerRequest,
 } from '~/types';
 import { getLLMConfig as getAnthropicLLMConfig } from '~/endpoints/anthropic/llm';
 import { isBamlEndpoint, isClaudeAgentSdkEndpoint } from '~/endpoints/custom/provider';
@@ -162,6 +165,50 @@ async function initializeBaml({
 }
 
 /**
+ * Repo root as seen from this package's own compiled output
+ * (`packages/api/dist/index.cjs`), computed the same way
+ * `api/config/paths.js`'s `root`/`uploads` are — `__dirname`-relative, never
+ * `process.cwd()`, since the server process is not guaranteed to be launched
+ * from the repo root (Docker `WORKDIR`, deployment tooling, etc.). Verified
+ * against the actual built dist layout: `dist/index.cjs` sits 3 levels below
+ * repo root (`packages/api/dist/` → `packages/api/` → `packages/` → root).
+ */
+const REPO_ROOT = path.resolve(__dirname, '../../..');
+const UPLOADS_ROOT = path.resolve(REPO_ROOT, 'uploads');
+
+/**
+ * The per-user directory Claude Agent SDK's subprocess gets `cwd`-scoped to —
+ * the same `uploads/<req.user.id>` directory the app's local file-upload
+ * strategy already uses (`api/server/services/Files/Local/crud.js`),
+ * reusing its own established, auth-derived, per-user isolation convention
+ * rather than inventing a parallel one. `req.user.id` is populated server-side
+ * by the JWT auth middleware — not client-suppliable.
+ *
+ * Throws rather than falling back to some default: an unauthenticated or
+ * userless request must never resolve to a shared/ambient `cwd` (the same
+ * failure mode that made this endpoint unsafe to expose before this was
+ * wired — see AF-j59p).
+ */
+function resolveClaudeAgentSdkWorkspace(req: ServerRequest): string {
+  const userId = req.user?.id;
+  if (typeof userId !== 'string' || userId.trim() === '') {
+    throw new Error(
+      'Providers.CLAUDE_AGENT_SDK requires an authenticated request: no req.user.id to scope its workspace to.',
+    );
+  }
+  const resolved = path.resolve(UPLOADS_ROOT, userId);
+  const rel = path.relative(path.resolve(UPLOADS_ROOT), resolved);
+  if (rel.startsWith('..') || path.isAbsolute(rel) || rel.includes(`..${path.sep}`)) {
+    throw new Error(`Resolved Claude Agent SDK workspace escapes uploads root for user ${userId}.`);
+  }
+  // Same lazy-create convention as the upload strategy this directory is
+  // shared with (`crud.js`'s own `fs.mkdirSync(..., { recursive: true })`) —
+  // a user who has never uploaded a file has no directory yet.
+  fs.mkdirSync(resolved, { recursive: true });
+  return resolved;
+}
+
+/**
  * Initializes a Claude Agent SDK-backed custom endpoint.
  *
  * Runs BEFORE any generic custom work, same as {@link initializeBaml} — no
@@ -183,17 +230,19 @@ async function initializeBaml({
  * `docs/providers/claude-agent-sdk.md` in `silmari-chat-agents`), so it
  * degrades to an immediate deny rather than a pause a user can approve.
  *
- * `workspace`/`cwd` are deliberately NOT set here — scoping a subprocess's
- * filesystem access per conversation in a multi-tenant deployment is a real
- * security decision blocked on its own design pass (see AF-5z9c). Until that
- * lands, this endpoint is registered but not exposed in any shipped
- * `librechat.yaml`.
+ * `cwd` scopes the subprocess to the requesting user's own upload directory
+ * (`resolveClaudeAgentSdkWorkspace` — same `uploads/<req.user.id>` isolation
+ * the app's local file-upload strategy already relies on). `workspace`
+ * (`additionalDirectories`) stays unset: this is a single-root scope, not a
+ * multi-root one.
  */
 async function initializeClaudeAgentSdk({
+  req,
   endpointConfig,
   appConfig,
 }: {
   endpoint: string;
+  req: ServerRequest;
   endpointConfig: Partial<TEndpoint>;
   model_parameters?: Record<string, unknown>;
   appConfig?: AppConfig;
@@ -204,11 +253,12 @@ async function initializeClaudeAgentSdk({
   const preToolUseHook = isHITLEnabled(toolApprovalPolicy)
     ? createToolPolicyHook(mapToolApprovalPolicy(toolApprovalPolicy) ?? {})
     : createToolPolicyHook({ mode: 'bypass' });
+  const cwd = resolveClaudeAgentSdkWorkspace(req);
 
   return {
     provider: Providers.CLAUDE_AGENT_SDK,
     /** Declarative only — this is what becomes `agent.model_parameters`. */
-    llmConfig: {},
+    llmConfig: { cwd },
     /** Executable, request-only. Never persisted; see `~/agents/runtime`. */
     runtimeOptions: { preToolUseHook },
     endpointTokenConfig:
@@ -334,7 +384,7 @@ export async function initializeCustom({
   }
 
   if (isClaudeAgentSdkEndpoint(endpointConfig)) {
-    return initializeClaudeAgentSdk({ endpoint, endpointConfig, model_parameters, appConfig });
+    return initializeClaudeAgentSdk({ endpoint, req, endpointConfig, model_parameters, appConfig });
   }
 
   const CUSTOM_API_KEY = extractEnvVariable(endpointConfig.apiKey ?? '');
