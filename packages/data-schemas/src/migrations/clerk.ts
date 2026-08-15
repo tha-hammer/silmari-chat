@@ -95,17 +95,23 @@ export const CLERK_INDEX_SPECS: readonly ClerkIndexSpec[] = [
   },
 ] as const;
 
-/** Fields whose presence must never be null/empty/whitespace (preflight step 1). */
-const NO_BLANK_CHECKS: ReadonlyArray<{ collection: string; field: string }> = [
+/**
+ * Fields whose presence must never be null/empty/whitespace (preflight step 1). Private —
+ * the test suite owns an independently authored oracle rather than importing this table, so
+ * a drifted/misspelled/reassigned row here is itself observable as a test failure.
+ */
+const NO_BLANK_CHECKS = [
   { collection: 'users', field: 'clerkId' },
   { collection: 'sessions', field: 'clerkTokenId' },
   { collection: 'sessions', field: 'clerkSessionId' },
   { collection: 'sessions', field: 'clerkUserId' },
   { collection: 'clerkauthclaims', field: 'tenantScope' },
   { collection: 'clerkauthclaims', field: 'clerkTokenId' },
+  { collection: 'clerkauthclaims', field: 'sourceClerkSessionId' },
+  { collection: 'clerkauthclaims', field: 'sourceClerkUserId' },
   { collection: 'clerkauthclaims', field: 'clerkSessionId' },
   { collection: 'clerkauthclaims', field: 'clerkUserId' },
-];
+] as const;
 
 type MongoDb = NonNullable<Connection['db']>;
 
@@ -146,16 +152,23 @@ function isCompatible(existing: ExistingIndexInfo, spec: ClerkIndexSpec): boolea
 /** Preflight 1: reject any present-but-blank Clerk field before indexing on it. */
 async function preflightNoBlankValues(db: MongoDb): Promise<void> {
   for (const { collection, field } of NO_BLANK_CHECKS) {
-    const count = await db
-      .collection(collection)
-      .countDocuments({
-        $or: [
-          { [field]: null },
-          { [field]: '' },
-          { [field]: { $type: 'string', $regex: /^\s+$/ } },
-        ],
-      })
-      .catch(() => 0);
+    // `{ [field]: null }` alone also matches documents where the field is simply absent
+    // (Mongo's documented null-equality semantics: null-or-missing). Every NO_BLANK_CHECKS
+    // field is Clerk-only, so an absent field just means a pre-existing non-Clerk document,
+    // not a blank value — `$exists: true` must gate the whole check, or every deployment
+    // with pre-existing users/sessions fails this preflight (2026-08-14 production incident).
+    const count = await db.collection(collection).countDocuments({
+      $and: [
+        { [field]: { $exists: true } },
+        {
+          $or: [
+            { [field]: null },
+            { [field]: '' },
+            { [field]: { $type: 'string', $regex: /^\s+$/ } },
+          ],
+        },
+      ],
+    });
     if (count > 0) {
       throw new ClerkIndexAssuranceError(
         `[ensureClerkIndexes] Preflight failed: ${collection}.${field} has ${count} null/empty/whitespace value(s)`,
@@ -180,8 +193,7 @@ async function preflightNoDuplicates(db: MongoDb): Promise<void> {
         { $limit: 1 },
         { $project: { _id: 0, count: 1 } },
       ])
-      .toArray()
-      .catch(() => []);
+      .toArray();
     if (duplicates.length > 0) {
       throw new ClerkIndexAssuranceError(
         `[ensureClerkIndexes] Preflight failed: ${spec.collection} has duplicate values for ` +
