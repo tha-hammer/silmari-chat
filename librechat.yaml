@@ -43,3 +43,22 @@ endpoints:
       customParams:
         defaultParamsEndpoint: 'baml'
       modelDisplayLabel: 'Team BAML'
+
+    # Claude Agent SDK: spawns a local `claude` CLI subprocess per turn. Auth is
+    # the CLI's own subscription login on the host running the server, not an
+    # API key -- this endpoint declares no apiKey/baseURL/headers. Each turn's
+    # subprocess is scoped (via packages/api/src/endpoints/custom/initialize.ts's
+    # resolveClaudeAgentSdkWorkspace) to uploads/<the requesting user's own id>,
+    # the same per-user directory the app's file-upload strategy already uses --
+    # no cross-user filesystem access. `models.default` is cosmetic: this
+    # provider has no per-request model selection (ClaudeAgentSDKClientOptions
+    # has no `model` field), so there is exactly one selectable entry.
+    - name: 'Claude Agent SDK'
+      provider: 'claudeAgentSdk'
+      models:
+        default:
+          - 'default'
+        fetch: false
+      customParams:
+        defaultParamsEndpoint: 'claudeAgentSdk'
+      modelDisplayLabel: 'Claude Agent SDK'
