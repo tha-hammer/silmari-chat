@@ -68,7 +68,7 @@ import { setAgentRuntimeOptions } from '~/agents/runtime';
 import { applyBackgroundToolCalls } from './background';
 import { filterFilesByEndpointConfig } from '~/files';
 import { generateArtifactsPrompt } from '~/prompts';
-import { isBamlInitializeResult } from '~/types';
+import { isBamlInitializeResult, isClaudeAgentSdkInitializeResult } from '~/types';
 import { getProviderConfig } from '~/endpoints';
 import { primeResources } from './resources';
 
@@ -1570,6 +1570,8 @@ export async function initializeAgent(
    * possible moment" merge in `~/agents/run`.
    */
   if (isBamlInitializeResult(options)) {
+    setAgentRuntimeOptions(initializedAgent, options.runtimeOptions);
+  } else if (isClaudeAgentSdkInitializeResult(options)) {
     setAgentRuntimeOptions(initializedAgent, options.runtimeOptions);
   }
 

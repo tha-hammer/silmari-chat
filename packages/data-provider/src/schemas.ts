@@ -48,6 +48,14 @@ export enum Providers {
    * and the name is what users select, persist, and authorize against.
    */
   BAML = 'baml',
+  /**
+   * Same discriminator-only shape as BAML, and for the same reason: a Claude
+   * Agent SDK endpoint is always a NAMED custom endpoint. Value MUST match
+   * `Providers.CLAUDE_AGENT_SDK` in `@librechat/agents`'s `src/common/enum.ts`
+   * exactly — the two enums are independently maintained but compared by
+   * string value across the package boundary.
+   */
+  CLAUDE_AGENT_SDK = 'claudeAgentSdk',
 }
 
 /**
@@ -1482,6 +1490,38 @@ export const bamlSchema = bamlBaseSchema
 
 /** `iconURL` stays server-derived from model spec configuration, never client-supplied. */
 export const compactBamlSchema = bamlBaseSchema
+  .omit({ iconURL: true })
+  .transform((obj: Partial<TConversation>) => removeNullishValues(obj, true))
+  .catch(() => ({}));
+
+/**
+ * Same trimmed shape as {@link bamlBaseSchema}, for the same reason: the
+ * `claude` CLI subprocess owns its own sampling, so there are no generation
+ * parameters (temperature, maxOutputTokens, etc.) to persist.
+ */
+export const claudeAgentSdkBaseSchema = tConversationSchema.pick({
+  chatProjectId: true,
+  model: true,
+  modelLabel: true,
+  chatGptLabel: true,
+  promptPrefix: true,
+  resendFiles: true,
+  artifacts: true,
+  imageDetail: true,
+  iconURL: true,
+  greeting: true,
+  spec: true,
+  maxContextTokens: true,
+  disableStreaming: true,
+  fileTokenLimit: true,
+});
+
+export const claudeAgentSdkSchema = claudeAgentSdkBaseSchema
+  .transform((obj: Partial<TConversation>) => removeNullishValues(obj, true))
+  .catch(() => ({}));
+
+/** `iconURL` stays server-derived from model spec configuration, never client-supplied. */
+export const compactClaudeAgentSdkSchema = claudeAgentSdkBaseSchema
   .omit({ iconURL: true })
   .transform((obj: Partial<TConversation>) => removeNullishValues(obj, true))
   .catch(() => ({}));

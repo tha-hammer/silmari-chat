@@ -1,6 +1,6 @@
 import { Providers } from '@librechat/agents';
 import type { BamlClientOptions, BamlFunctionSet } from '@librechat/agents/baml';
-import type { ClientOptions, OpenAIClientOptions } from '@librechat/agents';
+import type { ClientOptions, OpenAIClientOptions, HookCallback } from '@librechat/agents';
 import type { TConfig } from 'librechat-data-provider';
 import type { EndpointTokenConfig } from './tokens';
 import type { ServerRequest } from './http';
@@ -92,7 +92,31 @@ export interface BamlInitializeResult extends InitializeResultCommon {
   runtimeOptions: { functions: BamlFunctionSet };
 }
 
-export type InitializeResultBase = StandardInitializeResult | BamlInitializeResult;
+/**
+ * Claude Agent SDK splits its result the same way BAML does, and for the same
+ * reason: `preToolUseHook` is a closure over per-request tool-approval policy,
+ * not declarative data, so it must never reach `agent.model_parameters`, a
+ * Mongo document, pending/HITL state, a checkpoint, an SSE payload, or a
+ * public DTO.
+ */
+export interface ClaudeAgentSdkInitializeResult extends InitializeResultCommon {
+  provider: Providers.CLAUDE_AGENT_SDK;
+  /**
+   * `ClientOptions` (the broad per-provider union), not a `ProviderOptionsMap`
+   * lookup — `ClaudeAgentSDKClientOptions` has no dedicated npm subpath the
+   * way `BamlClientOptions` does (this provider is a normal static registry
+   * entry, not BAML's optional-port shape), and indexing `ProviderOptionsMap`
+   * by a `Providers` member from this package boundary does not resolve
+   * (confirmed: the identical pattern fails for `Providers.BAML` too).
+   */
+  llmConfig: ClientOptions;
+  runtimeOptions: { preToolUseHook: HookCallback<'PreToolUse'> };
+}
+
+export type InitializeResultBase =
+  | StandardInitializeResult
+  | BamlInitializeResult
+  | ClaudeAgentSdkInitializeResult;
 
 /**
  * Narrow to the BAML arm. Both halves are checked: `provider` is the intent and
@@ -102,3 +126,9 @@ export const isBamlInitializeResult = (
   result: InitializeResultBase,
 ): result is BamlInitializeResult =>
   result.provider === Providers.BAML && result.runtimeOptions != null;
+
+/** Narrow to the Claude Agent SDK arm — same discrimination shape as {@link isBamlInitializeResult}. */
+export const isClaudeAgentSdkInitializeResult = (
+  result: InitializeResultBase,
+): result is ClaudeAgentSdkInitializeResult =>
+  result.provider === Providers.CLAUDE_AGENT_SDK && result.runtimeOptions != null;

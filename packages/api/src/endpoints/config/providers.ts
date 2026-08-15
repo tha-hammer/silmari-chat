@@ -5,7 +5,7 @@ import type { AppConfig } from '@librechat/data-schemas';
 import type { BaseInitializeParams, InitializeResultBase } from '~/types';
 import { resolveCustomEndpointSecrets } from '~/admin/secrets';
 import { initializeAnthropic } from '../anthropic/initialize';
-import { isBamlEndpoint } from '~/endpoints/custom/provider';
+import { isBamlEndpoint, isClaudeAgentSdkEndpoint } from '~/endpoints/custom/provider';
 import { initializeBedrock } from '../bedrock/initialize';
 import { initializeCustom } from '../custom/initialize';
 import { initializeGoogle } from '../google/initialize';
@@ -149,15 +149,15 @@ export function getProviderConfig({
   appConfig?: AppConfig;
 }): ProviderConfigResult {
   /**
-   * BAML re-entry.
+   * BAML / Claude Agent SDK re-entry.
    *
-   * `Providers.BAML` is a runtime discriminator, never an endpoint name: the
-   * persisted identity is the named custom endpoint the user selected. Summary,
-   * title, and activity-label resolution re-enter with the runtime provider, so
+   * Both are runtime discriminators, never endpoint names: the persisted
+   * identity is the named custom endpoint the user selected. Summary, title,
+   * and activity-label resolution re-enter with the runtime provider, so
    * without the endpoint they would look for an endpoint literally called
-   * "baml", fail the lookup, and fall through to the OpenAI-compatible client
-   * with no credentials — a confusing failure far from the real cause. Failing
-   * loudly here is the honest alternative.
+   * "baml"/"claudeAgentSdk", fail the lookup, and fall through to the
+   * OpenAI-compatible client with no credentials — a confusing failure far
+   * from the real cause. Failing loudly here is the honest alternative.
    */
   if (provider === Providers.BAML) {
     if (endpoint == null || endpoint === '') {
@@ -173,6 +173,23 @@ export function getProviderConfig({
       getOptions: initializeCustom,
       overrideProvider: Providers.BAML,
       customEndpointConfig: bamlConfig as Partial<TEndpoint>,
+    };
+  }
+
+  if (provider === Providers.CLAUDE_AGENT_SDK) {
+    if (endpoint == null || endpoint === '') {
+      throw new Error(
+        'Provider claudeAgentSdk requires the original custom endpoint name; it is a provider discriminator, not an endpoint.',
+      );
+    }
+    const claudeAgentSdkConfig = getCustomEndpointConfig({ endpoint, appConfig });
+    if (!isClaudeAgentSdkEndpoint(claudeAgentSdkConfig ?? undefined)) {
+      throw new Error(`Endpoint ${endpoint} is not a Claude Agent SDK endpoint.`);
+    }
+    return {
+      getOptions: initializeCustom,
+      overrideProvider: Providers.CLAUDE_AGENT_SDK,
+      customEndpointConfig: claudeAgentSdkConfig as Partial<TEndpoint>,
     };
   }
 
@@ -247,11 +264,14 @@ export function getProviderConfig({
   }
 
   /**
-   * A BAML endpoint reached by its NAME (the main flow) resolves to the BAML
-   * runtime provider, the same value re-entry above expects to receive back.
+   * A BAML or Claude Agent SDK endpoint reached by its NAME (the main flow)
+   * resolves to its own runtime provider, the same value re-entry above
+   * expects to receive back.
    */
   if (isBamlEndpoint(customEndpointConfig)) {
     overrideProvider = Providers.BAML;
+  } else if (isClaudeAgentSdkEndpoint(customEndpointConfig)) {
+    overrideProvider = Providers.CLAUDE_AGENT_SDK;
   }
 
   return {

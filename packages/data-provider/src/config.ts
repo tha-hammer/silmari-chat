@@ -1024,10 +1024,20 @@ export const endpointSchema = baseEndpointSchema.merge(
      *   documented environment variables, so a BAML endpoint declares no
      *   `apiKey`, `baseURL`, or `headers`. See `bamlEndpointIssues` for the
      *   cross-field rules enforced at the public config boundary.
+     * - `claudeAgentSdk` — the endpoint spawns a local `claude` CLI subprocess
+     *   per turn (`@anthropic-ai/claude-agent-sdk`). Auth is the CLI's own
+     *   subscription login, not an API key, so this endpoint also declares no
+     *   `apiKey`, `baseURL`, or `headers`. See `claudeAgentSdkEndpointIssues`.
      *
      * Omit for OpenAI-compatible endpoints.
      */
-    provider: z.union([z.literal(EModelEndpoint.anthropic), z.literal(Providers.BAML)]).optional(),
+    provider: z
+      .union([
+        z.literal(EModelEndpoint.anthropic),
+        z.literal(Providers.BAML),
+        z.literal(Providers.CLAUDE_AGENT_SDK),
+      ])
+      .optional(),
     headers: z.record(z.string()).optional(),
     addParams: addParamsSchema.optional(),
     dropParams: z.array(z.string()).optional(),
@@ -1898,6 +1908,10 @@ export type SummarizationConfig = z.infer<typeof summarizationConfigSchema>;
 export const isBamlEndpoint = (endpoint?: { provider?: unknown } | null): boolean =>
   endpoint?.provider === Providers.BAML;
 
+/** A custom endpoint backed by a local `claude` CLI subprocess (Claude Agent SDK). */
+export const isClaudeAgentSdkEndpoint = (endpoint?: { provider?: unknown } | null): boolean =>
+  endpoint?.provider === Providers.CLAUDE_AGENT_SDK;
+
 /** Values `customParams.defaultParamsEndpoint` may hold on a BAML endpoint. */
 const BAML_DEFAULT_PARAMS_VALUES: readonly string[] = [EModelEndpoint.custom, Providers.BAML];
 
@@ -2020,6 +2034,125 @@ export const bamlEndpointIssues = (
   return issues;
 };
 
+/** Values `customParams.defaultParamsEndpoint` may hold on a Claude Agent SDK endpoint. */
+const CLAUDE_AGENT_SDK_DEFAULT_PARAMS_VALUES: readonly string[] = [
+  EModelEndpoint.custom,
+  Providers.CLAUDE_AGENT_SDK,
+];
+
+/**
+ * Config keys a Claude Agent SDK endpoint may not carry, and why.
+ *
+ * Same rationale as {@link BAML_FORBIDDEN_KEYS}: transport and credentials are
+ * owned by the local `claude` CLI's own subscription login, not this config,
+ * and `addParams`/`dropParams` are OpenAI request-shaping that a subprocess
+ * turn has no request to apply.
+ */
+const CLAUDE_AGENT_SDK_FORBIDDEN_KEYS = [
+  'apiKey',
+  'baseURL',
+  'headers',
+  'directEndpoint',
+  'addParams',
+  'dropParams',
+] as const;
+
+const CLAUDE_AGENT_SDK_FORBIDDEN_CUSTOM_PARAMS = [
+  'reasoningFormat',
+  'reasoningKey',
+  'includeReasoningContent',
+  'includeReasoningHistory',
+] as const;
+
+/**
+ * The Claude Agent SDK cross-field grammar — mirrors {@link bamlEndpointIssues}
+ * for the same structural reason (`configSchema` wraps custom endpoints in
+ * `endpointSchema.partial()`, so these rules must live off the schema itself).
+ */
+export const claudeAgentSdkEndpointIssues = (
+  endpoint: Record<string, unknown>,
+  index: number,
+): BamlIssue[] => {
+  const issues: BamlIssue[] = [];
+  const at = (...path: (string | number)[]): (string | number)[] => [index, ...path];
+
+  if (typeof endpoint.name !== 'string' || endpoint.name.trim() === '') {
+    issues.push({
+      path: at('name'),
+      message: 'A Claude Agent SDK endpoint requires a non-empty name.',
+    });
+  }
+
+  const models = endpoint.models as
+    | { default?: unknown; fetch?: unknown; userIdQuery?: unknown }
+    | undefined;
+
+  if (!Array.isArray(models?.default) || models.default.length === 0) {
+    issues.push({
+      path: at('models', 'default'),
+      message:
+        'A Claude Agent SDK endpoint requires an explicit non-empty models.default list (cosmetic — this provider has no model selection of its own).',
+    });
+  }
+
+  if (models?.fetch === true) {
+    issues.push({
+      path: at('models', 'fetch'),
+      message: 'A Claude Agent SDK endpoint cannot fetch models: there is no model API to query.',
+    });
+  }
+
+  if (models?.userIdQuery !== undefined) {
+    issues.push({
+      path: at('models', 'userIdQuery'),
+      message: 'models.userIdQuery is not supported for a Claude Agent SDK endpoint.',
+    });
+  }
+
+  for (const key of CLAUDE_AGENT_SDK_FORBIDDEN_KEYS) {
+    if (endpoint[key] !== undefined) {
+      issues.push({
+        path: at(key),
+        message: `${key} is not supported for a Claude Agent SDK endpoint: transport and credentials belong to the local claude CLI's own subscription login.`,
+      });
+    }
+  }
+
+  const customParams = endpoint.customParams as Record<string, unknown> | undefined;
+  if (customParams != null) {
+    const defaultParamsEndpoint = customParams.defaultParamsEndpoint;
+    if (
+      defaultParamsEndpoint !== undefined &&
+      !CLAUDE_AGENT_SDK_DEFAULT_PARAMS_VALUES.includes(defaultParamsEndpoint as string)
+    ) {
+      issues.push({
+        path: at('customParams', 'defaultParamsEndpoint'),
+        message: `A Claude Agent SDK endpoint's defaultParamsEndpoint must be omitted, "${EModelEndpoint.custom}", or "${Providers.CLAUDE_AGENT_SDK}".`,
+      });
+    }
+
+    for (const key of CLAUDE_AGENT_SDK_FORBIDDEN_CUSTOM_PARAMS) {
+      if (customParams[key] !== undefined) {
+        issues.push({
+          path: at('customParams', key),
+          message: `customParams.${key} is not supported for a Claude Agent SDK endpoint.`,
+        });
+      }
+    }
+
+    const paramDefinitions = customParams.paramDefinitions;
+    if (Array.isArray(paramDefinitions) && paramDefinitions.length > 0) {
+      issues.push({
+        path: at('customParams', 'paramDefinitions'),
+        message:
+          'A Claude Agent SDK endpoint exposes no generation parameters, so paramDefinitions cannot be applied.',
+      });
+    }
+  }
+
+  return issues;
+};
+
 /**
  * Rewrites `customParams.defaultParamsEndpoint` to the provider discriminator so
  * every downstream reader — parsers, settings, `buildEndpointOption` — sees one
@@ -2038,14 +2171,28 @@ export const normalizeBamlEndpoint = (
   return endpoint;
 };
 
+/** Same normalization as {@link normalizeBamlEndpoint}, for Claude Agent SDK endpoints. */
+export const normalizeClaudeAgentSdkEndpoint = (
+  endpoint: Record<string, unknown>,
+): Record<string, unknown> => {
+  if (!isClaudeAgentSdkEndpoint(endpoint)) {
+    return endpoint;
+  }
+  const customParams = (endpoint.customParams ?? {}) as Record<string, unknown>;
+  endpoint.customParams = { ...customParams, defaultParamsEndpoint: Providers.CLAUDE_AGENT_SDK };
+  return endpoint;
+};
+
 const customEndpointsSchema = z
   .array(endpointSchema.partial())
   .superRefine((endpoints, ctx) => {
     endpoints.forEach((endpoint, index) => {
-      if (!isBamlEndpoint(endpoint)) {
-        return;
-      }
-      for (const issue of bamlEndpointIssues(endpoint as Record<string, unknown>, index)) {
+      const issues = isBamlEndpoint(endpoint)
+        ? bamlEndpointIssues(endpoint as Record<string, unknown>, index)
+        : isClaudeAgentSdkEndpoint(endpoint)
+          ? claudeAgentSdkEndpointIssues(endpoint as Record<string, unknown>, index)
+          : [];
+      for (const issue of issues) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: issue.path, message: issue.message });
       }
     });

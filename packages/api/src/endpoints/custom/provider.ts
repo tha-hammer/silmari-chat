@@ -1,4 +1,4 @@
-import { Providers, isBamlEndpoint } from 'librechat-data-provider';
+import { Providers, isBamlEndpoint, isClaudeAgentSdkEndpoint } from 'librechat-data-provider';
 import type { TEndpoint } from 'librechat-data-provider';
 
 /**
@@ -15,20 +15,24 @@ import type { TEndpoint } from 'librechat-data-provider';
  * model fetch, no cache access.
  */
 
-export { isBamlEndpoint };
+export { isBamlEndpoint, isClaudeAgentSdkEndpoint };
 
 /**
  * Is this entry complete enough to publish?
  *
  * An OpenAI-compatible endpoint needs somewhere to send requests and something
  * to authenticate with. A BAML endpoint needs neither, and instead needs the
- * explicit list of compiled clients it exposes.
+ * explicit list of compiled clients it exposes. A Claude Agent SDK endpoint
+ * needs neither either — same as BAML's model-list requirement, for a
+ * cosmetic reason only: `models.default` gives the model picker something to
+ * select, since `ClaudeAgentSDKClientOptions` has no `model` field to route
+ * a selection to.
  */
 export const isPublishableCustomEndpoint = (endpoint: Partial<TEndpoint>): boolean => {
   if (endpoint?.name == null || endpoint.name === '') {
     return false;
   }
-  if (isBamlEndpoint(endpoint)) {
+  if (isBamlEndpoint(endpoint) || isClaudeAgentSdkEndpoint(endpoint)) {
     return (endpoint.models?.default?.length ?? 0) > 0;
   }
   return Boolean(
@@ -64,10 +68,12 @@ export const bamlClientNames = (endpoint: Partial<TEndpoint>): string[] => {
  * A native `provider` implies its parameter set. Surfacing it as
  * `defaultParamsEndpoint` is what makes the client render the right controls —
  * Anthropic's `maxOutputTokens`/`thinking` rather than OpenAI's `max_tokens`,
- * and for BAML no generation controls at all.
+ * and for BAML or Claude Agent SDK no generation controls at all — both
+ * subprocesses/compiled clients own their own sampling.
  *
- * An admin's explicit non-default choice still wins, except for BAML, where the
- * only accepted values normalize to the provider anyway.
+ * An admin's explicit non-default choice still wins, except for BAML and
+ * Claude Agent SDK, where the only accepted values normalize to the provider
+ * anyway.
  */
 export const resolveDefaultParams = (
   endpoint: Partial<TEndpoint>,
@@ -76,8 +82,8 @@ export const resolveDefaultParams = (
   if (provider == null) {
     return customParams;
   }
-  if (provider === Providers.BAML) {
-    return { ...customParams, defaultParamsEndpoint: Providers.BAML };
+  if (provider === Providers.BAML || provider === Providers.CLAUDE_AGENT_SDK) {
+    return { ...customParams, defaultParamsEndpoint: provider };
   }
   const chosen = customParams?.defaultParamsEndpoint;
   return chosen == null || chosen === 'custom'

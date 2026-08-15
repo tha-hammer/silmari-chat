@@ -14,16 +14,19 @@ import type {
   InitializeResultBase,
   EndpointTokenConfig,
   AnthropicModelOptions,
+  ClaudeAgentSdkInitializeResult,
 } from '~/types';
 import { getLLMConfig as getAnthropicLLMConfig } from '~/endpoints/anthropic/llm';
+import { isBamlEndpoint, isClaudeAgentSdkEndpoint } from '~/endpoints/custom/provider';
+import { resolveToolApprovalPolicy, mapToolApprovalPolicy, isHITLEnabled } from '~/agents/hitl/policy';
 import { extractDefaultParams } from '~/endpoints/openai/llm';
-import { isBamlEndpoint } from '~/endpoints/custom/provider';
 import { isUserProvided, checkUserKeyExpiry } from '~/utils';
 import { getOpenAIConfig } from '~/endpoints/openai/config';
 import { getScopedTokenConfigKey } from '~/endpoints/keys';
 import { getCustomEndpointConfig } from '~/app/config';
 import { createBamlFunctions } from '~/baml/loader';
 import { fetchModels } from '~/endpoints/models';
+import { createToolPolicyHook } from '@librechat/agents';
 import { validateEndpointURL } from '~/auth';
 import { tokenConfigCache } from '~/cache';
 
@@ -97,13 +100,18 @@ function toBillingTokenConfig(
  * read, which made "does this endpoint touch the cache at all?" impossible to
  * assert without observing a cache call. As a pure predicate it is testable on
  * its own, and it is always false for BAML (compiled clients publish no model
- * list to derive rates from) and for any endpoint with a static `tokenConfig`.
+ * list to derive rates from), for Claude Agent SDK (same reason — no model API
+ * to fetch against), and for any endpoint with a static `tokenConfig`.
  */
 export function shouldReadFetchedTokenConfig(
   endpointConfig: Partial<TEndpoint>,
   endpoint: string,
 ): boolean {
-  if (isBamlEndpoint(endpointConfig) || endpointConfig.tokenConfig != null) {
+  if (
+    isBamlEndpoint(endpointConfig) ||
+    isClaudeAgentSdkEndpoint(endpointConfig) ||
+    endpointConfig.tokenConfig != null
+  ) {
     return false;
   }
   return Boolean(FetchTokenConfig[endpoint.toLowerCase() as keyof typeof FetchTokenConfig]);
@@ -144,6 +152,65 @@ async function initializeBaml({
     llmConfig: { model },
     /** Executable, request-only. Never persisted; see `~/agents/runtime`. */
     runtimeOptions: { functions },
+    endpointTokenConfig:
+      endpointConfig.tokenConfig == null
+        ? undefined
+        : toBillingTokenConfig(
+            endpointConfig.tokenConfig as Record<string, Record<string, number>>,
+          ),
+  };
+}
+
+/**
+ * Initializes a Claude Agent SDK-backed custom endpoint.
+ *
+ * Runs BEFORE any generic custom work, same as {@link initializeBaml} — no
+ * credential resolution, no user-key lookup, no URL validation, no model
+ * fetch. This provider has no `baseURL`/`apiKey` (auth is the local `claude`
+ * CLI's own subscription login) and no `model_parameters.model` concept
+ * (`ClaudeAgentSDKClientOptions` has no `model` field — the subprocess uses
+ * whatever the CLI resolves; `models.default` exists only so the endpoint has
+ * a selectable entry in the model picker).
+ *
+ * `preToolUseHook` mirrors this endpoint's own tool-approval gating for every
+ * other provider (`agents/run.ts`'s `buildHITLRunWiring`): when
+ * `endpoints.agents.toolApproval.enabled` is not set — the default — tools
+ * must behave like they do for every other provider, so `mode: 'bypass'`
+ * lets Claude's internal tool loop run unimpeded. When an admin opts into
+ * tool approval, the configured policy governs — with one real, honest gap:
+ * unlike `ToolNode`'s resumable interrupt, an `ask` decision here has no
+ * `hitlResolver` wired (no live human-response transport exists yet, see
+ * `docs/providers/claude-agent-sdk.md` in `silmari-chat-agents`), so it
+ * degrades to an immediate deny rather than a pause a user can approve.
+ *
+ * `workspace`/`cwd` are deliberately NOT set here — scoping a subprocess's
+ * filesystem access per conversation in a multi-tenant deployment is a real
+ * security decision blocked on its own design pass (see AF-5z9c). Until that
+ * lands, this endpoint is registered but not exposed in any shipped
+ * `librechat.yaml`.
+ */
+async function initializeClaudeAgentSdk({
+  endpointConfig,
+  appConfig,
+}: {
+  endpoint: string;
+  endpointConfig: Partial<TEndpoint>;
+  model_parameters?: Record<string, unknown>;
+  appConfig?: AppConfig;
+}): Promise<ClaudeAgentSdkInitializeResult> {
+  const toolApprovalPolicy = resolveToolApprovalPolicy({
+    endpoint: appConfig?.endpoints?.[EModelEndpoint.agents]?.toolApproval,
+  });
+  const preToolUseHook = isHITLEnabled(toolApprovalPolicy)
+    ? createToolPolicyHook(mapToolApprovalPolicy(toolApprovalPolicy) ?? {})
+    : createToolPolicyHook({ mode: 'bypass' });
+
+  return {
+    provider: Providers.CLAUDE_AGENT_SDK,
+    /** Declarative only — this is what becomes `agent.model_parameters`. */
+    llmConfig: {},
+    /** Executable, request-only. Never persisted; see `~/agents/runtime`. */
+    runtimeOptions: { preToolUseHook },
     endpointTokenConfig:
       endpointConfig.tokenConfig == null
         ? undefined
@@ -264,6 +331,10 @@ export async function initializeCustom({
    */
   if (isBamlEndpoint(endpointConfig)) {
     return initializeBaml({ endpoint, endpointConfig, model_parameters });
+  }
+
+  if (isClaudeAgentSdkEndpoint(endpointConfig)) {
+    return initializeClaudeAgentSdk({ endpoint, endpointConfig, model_parameters, appConfig });
   }
 
   const CUSTOM_API_KEY = extractEnvVariable(endpointConfig.apiKey ?? '');

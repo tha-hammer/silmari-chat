@@ -11,6 +11,7 @@ const {
   EImageOutputType,
   agentParamSettings,
   normalizeBamlEndpoint,
+  normalizeClaudeAgentSdkEndpoint,
   validateSettingDefinitions,
 } = require('librechat-data-provider');
 
@@ -171,10 +172,12 @@ https://www.librechat.ai/docs/configuration/stt_tts`);
 
   /**
    * Runs after `parseCustomParams`, which defaults `defaultParamsEndpoint` to
-   * `custom`. A BAML endpoint accepts that spelling but publishes `baml`, so the
-   * rewrite has to come last or the default would win.
+   * `custom`. A BAML or Claude Agent SDK endpoint accepts that spelling but
+   * publishes its own provider value, so the rewrite has to come last or the
+   * default would win.
    */
   (customConfig.endpoints?.custom ?? []).forEach(normalizeBamlEndpoint);
+  (customConfig.endpoints?.custom ?? []).forEach(normalizeClaudeAgentSdkEndpoint);
 
   if (result.data.modelSpecs) {
     customConfig.modelSpecs = result.data.modelSpecs;

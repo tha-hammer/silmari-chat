@@ -1163,12 +1163,19 @@ const bedrockMoonshotCol2: SettingsConfiguration = [
  */
 const bamlConfig: SettingsConfiguration = [];
 
+/**
+ * Same contract as {@link bamlConfig}: the `claude` CLI subprocess owns its
+ * own sampling, so the host offers no generation controls for it either.
+ */
+const claudeAgentSdkConfig: SettingsConfiguration = [];
+
 export const paramSettings: Record<string, SettingsConfiguration | undefined> = {
   [EModelEndpoint.openAI]: openAI,
   [EModelEndpoint.azureOpenAI]: openAI,
   [EModelEndpoint.custom]: openAI,
   [Providers.OPENROUTER]: openRouter,
   [Providers.BAML]: bamlConfig,
+  [Providers.CLAUDE_AGENT_SDK]: claudeAgentSdkConfig,
   [EModelEndpoint.anthropic]: anthropicConfig,
   [`${EModelEndpoint.bedrock}-${BedrockProviders.Anthropic}`]: bedrockAnthropic,
   [`${EModelEndpoint.bedrock}-${BedrockProviders.MistralAI}`]: bedrockMistral,
@@ -1199,6 +1206,11 @@ const bamlColumns = {
   col2: bamlConfig,
 };
 
+const claudeAgentSdkColumns = {
+  col1: claudeAgentSdkConfig,
+  col2: claudeAgentSdkConfig,
+};
+
 export const presetSettings: Record<
   string,
   | {
@@ -1215,6 +1227,7 @@ export const presetSettings: Record<
     col2: [...openAICol2, anthropic.promptCache, anthropic.promptCacheTtl],
   },
   [Providers.BAML]: bamlColumns,
+  [Providers.CLAUDE_AGENT_SDK]: claudeAgentSdkColumns,
   [EModelEndpoint.anthropic]: {
     col1: anthropicCol1,
     col2: anthropicCol2,

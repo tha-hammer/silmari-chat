@@ -6,6 +6,7 @@
 // no dynamic import and never touches the bridge.
 import '@librechat/agents/baml';
 import type { BamlFunctionSet } from '@librechat/agents/baml';
+import type { HookCallback } from '@librechat/agents';
 
 /**
  * Where request-only executable state rides between `initializeAgent` and
@@ -13,9 +14,10 @@ import type { BamlFunctionSet } from '@librechat/agents/baml';
  *
  * The initialized agent is an ordinary object that gets spread, serialized, and
  * persisted along the way — `agent.model_parameters` becomes a Mongo document,
- * SSE JSON, and a public DTO. A BAML function set is none of those things: it
- * holds generated functions and a worker boundary, and it must not appear in any
- * of them.
+ * SSE JSON, and a public DTO. Neither a BAML function set nor a Claude Agent SDK
+ * `PreToolUse` hook callback is any of those things: one holds generated
+ * functions and a worker boundary, the other is a closure over per-request
+ * policy state, and neither must appear in any of them.
  *
  * A symbol key that is non-enumerable makes that structural rather than
  * disciplinary: `Object.keys`, spread, `JSON.stringify`, and BSON all skip it,
@@ -26,10 +28,18 @@ import type { BamlFunctionSet } from '@librechat/agents/baml';
  * you can only find by reading this file.
  */
 
-const RUNTIME_CARRIER = Symbol('librechat.baml.runtime');
+const RUNTIME_CARRIER = Symbol('librechat.agentRuntime');
 
+/**
+ * Every field is optional and every initializer sets at most one: a shared
+ * carrier keyed by provider identity, not a discriminated union, because
+ * `getAgentRuntimeOptions`'s single consumer (`agents/run.ts`) merges
+ * whichever fields are present onto `llmConfig` generically, without needing
+ * to know which provider set them.
+ */
 export interface AgentRuntimeOptions {
-  readonly functions: BamlFunctionSet;
+  readonly functions?: BamlFunctionSet;
+  readonly preToolUseHook?: HookCallback<'PreToolUse'>;
 }
 
 type RuntimeCarrier = { [RUNTIME_CARRIER]?: AgentRuntimeOptions };

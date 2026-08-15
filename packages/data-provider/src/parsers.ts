@@ -19,6 +19,8 @@ import {
   compactAgentsSchema,
   compactGoogleSchema,
   compactAssistantSchema,
+  claudeAgentSdkSchema,
+  compactClaudeAgentSdkSchema,
 } from './schemas';
 import { bedrockInputSchema } from './bedrock';
 import { ContentTypes } from './types/runs';
@@ -31,6 +33,7 @@ type EndpointSchema =
   | typeof openAISchema
   | typeof openRouterSchema
   | typeof bamlSchema
+  | typeof claudeAgentSdkSchema
   | typeof googleSchema
   | typeof anthropicSchema
   | typeof assistantSchema
@@ -38,7 +41,11 @@ type EndpointSchema =
   | typeof bedrockInputSchema;
 
 export type EndpointSchemaKey = EModelEndpoint;
-type EndpointSchemaLookupKey = EModelEndpoint | Providers.OPENROUTER | Providers.BAML;
+type EndpointSchemaLookupKey =
+  | EModelEndpoint
+  | Providers.OPENROUTER
+  | Providers.BAML
+  | Providers.CLAUDE_AGENT_SDK;
 
 const endpointSchemas: Record<EndpointSchemaLookupKey, EndpointSchema> = {
   [EModelEndpoint.openAI]: openAISchema,
@@ -46,6 +53,7 @@ const endpointSchemas: Record<EndpointSchemaLookupKey, EndpointSchema> = {
   [EModelEndpoint.custom]: openAISchema,
   [Providers.OPENROUTER]: openRouterSchema,
   [Providers.BAML]: bamlSchema,
+  [Providers.CLAUDE_AGENT_SDK]: claudeAgentSdkSchema,
   [EModelEndpoint.google]: googleSchema,
   [EModelEndpoint.anthropic]: anthropicSchema,
   [EModelEndpoint.assistants]: assistantSchema,
@@ -320,6 +328,7 @@ type CompactEndpointSchema =
   | typeof compactAgentsSchema
   | typeof compactGoogleSchema
   | typeof compactBamlSchema
+  | typeof compactClaudeAgentSdkSchema
   | typeof openRouterSchema
   | typeof anthropicSchema
   | typeof bedrockInputSchema;
@@ -330,6 +339,7 @@ const compactEndpointSchemas: Record<EndpointSchemaLookupKey, CompactEndpointSch
   [EModelEndpoint.custom]: openAISchema,
   [Providers.OPENROUTER]: openRouterSchema,
   [Providers.BAML]: compactBamlSchema,
+  [Providers.CLAUDE_AGENT_SDK]: compactClaudeAgentSdkSchema,
   [EModelEndpoint.assistants]: compactAssistantSchema,
   [EModelEndpoint.azureAssistants]: compactAssistantSchema,
   [EModelEndpoint.agents]: compactAgentsSchema,
