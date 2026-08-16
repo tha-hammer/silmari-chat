@@ -1,0 +1,25 @@
+{
+  "name": "A_BRIDGE_LABELS",
+  "version": "1.0.0",
+  "description": "Match cards to transcript word-spans and attach ref:ev:video= labels and narrative edges via vendored silmari-store.",
+  "input": {
+    "video_id":            { "type": "string", "required": true },
+    "words_path":          { "type": "string", "required": true },
+    "card_graph_path":     { "type": "string", "required": true },
+    "ingest_report_path":  { "type": "string", "required": true }
+  },
+  "output": {
+    "card_graph_path":  { "type": "string" },
+    "matched":          { "type": "number" },
+    "unmatched_count":  { "type": "number" },
+    "unmatched_path":   { "type": "string" },
+    "proposals_path":   { "type": "string" },
+    "proposals_count":  { "type": "number" }
+  },
+  "env_vars": [
+    "SILMARI_STORE_BINARY",
+    "BRIDGE_ENTRY"
+  ],
+  "requires": ["shell"],
+  "side_effect": "idempotent-with-state"
+}

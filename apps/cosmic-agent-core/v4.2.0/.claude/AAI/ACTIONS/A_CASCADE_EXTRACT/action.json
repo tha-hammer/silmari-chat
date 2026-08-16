@@ -1,0 +1,22 @@
+{
+  "name": "A_CASCADE_EXTRACT",
+  "version": "1.0.0",
+  "description": "Run the LLM cascade (themes → ideas → micros → atomicity gate → fix) over a transcript, or replay golden fixtures when MOCK_LLM=1.",
+  "input": {
+    "video_id":         { "type": "string", "required": true },
+    "transcript_path":  { "type": "string", "required": true },
+    "extracted_dir":    { "type": "string", "required": true }
+  },
+  "output": {
+    "video_id":          { "type": "string" },
+    "extracted_dir":     { "type": "string" },
+    "themes_path":       { "type": "string" },
+    "ideas_path":        { "type": "string" },
+    "micros_path":       { "type": "string" },
+    "flagged_path":      { "type": "string" },
+    "micros_v2_path":    { "type": "string" }
+  },
+  "env_vars": ["CASCADE_ROOT", "MOCK_LLM", "SAI_INFERENCE_BACKEND"],
+  "requires": ["shell"],
+  "side_effect": "side-effecting-network"
+}

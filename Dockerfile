@@ -88,6 +88,16 @@ ENV BUILD_COMMIT=${BUILD_COMMIT}
 ENV BUILD_BRANCH=${BUILD_BRANCH}
 ENV BUILD_DATE=${BUILD_DATE}
 
+# AAI agent infrastructure (cosmic-agent-core) -- native Claude Code config
+# (skills/hooks/agents/commands/settings.json) for the Claude Agent SDK
+# provider's spawned `claude` CLI subprocess. CLAUDE_CONFIG_DIR is set
+# explicitly rather than relying on $HOME/.claude resolution: deployments
+# override this image's `USER node` uid/gid at the Compose level
+# (`user: "${UID}:${GID}"`), and an arbitrary host uid has no /etc/passwd
+# entry in this image for os.homedir() to resolve against.
+COPY --chown=node:node apps/cosmic-agent-core/v4.2.0/.claude /home/node/.claude
+ENV CLAUDE_CONFIG_DIR=/home/node/.claude
+
 # Node API setup
 EXPOSE 3080
 ENV HOST=0.0.0.0

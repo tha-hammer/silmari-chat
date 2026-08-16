@@ -1,0 +1,48 @@
+{
+  "name": "A_REEL_REVISE",
+  "version": "2.0.0",
+  "description": "Apply a single revise op (swap-clip | regen-art | swap-art) to a prior ComposedPlan (schema_version 'compose-p3') via cosmic-video revise. Writes a NEW plan JSON + regenerates preview MP4. Distinct from A_REEL_COMPOSE (which builds from scratch).",
+  "input": {
+    "plan_path": { "type": "string", "required": true, "description": "Absolute path to the prior ComposedPlan JSON (schema_version 'compose-p3')" },
+    "out":       { "type": "string", "required": true, "description": "Absolute path for the new (revised) ComposedPlan JSON output" },
+    "op_args":   {
+      "type": "object",
+      "required": true,
+      "description": "Discriminated union (ReviseOp). swap-clip: {op, clip_index, new_card_id, store, corpus_root, transcript_dir}. regen-art: {op, slot}. swap-art: {op, slot, image_path}. Store, corpus_root, and transcript_dir are not required by art-only operations."
+    }
+  },
+  "output": {
+    "plan_path":    { "type": "string", "description": "Absolute path to the new ComposedPlan JSON written by revise" },
+    "preview_path": { "type": "string", "required": false, "description": "Absent when preview regeneration failed (non-fatal, captured in warnings)" },
+    "status":       { "type": "string", "enum": ["pass", "warn", "fail"] },
+    "warnings":     { "type": "array", "required": false, "description": "Includes synthetic-connection notices, preview failures, degraded-asset notices" },
+    "error":        { "type": "string", "required": false, "description": "Present iff status === 'fail'; pipelineError/appError code (e.g. REVISE_CLIP_INDEX_OUT_OF_BOUNDS, REVISE_NEW_CARD_NOT_FOUND, USER_ASSET_PATH_MISSING, INVALID_SLOT, REVISE_PLAN_NOT_FOUND, RENDER_PLAN_SCHEMA_MISMATCH)" }
+  },
+  "env_vars": ["VIDEO_PIPELINE_ROOT", "COSMIC_VIDEO_ROOT", "COSMIC_PROJECT_ROOT", "COSMIC_VIDEO_INFERENCE_STUB", "ZK_STORE_NAME", "COSMIC_MEDIA_SOURCE_ROOT"],
+  "requires": ["shell"],
+  "side_effect": "file-mutation",
+  "notes": "op_args is a discriminated union keyed on op_args.op. Per-op required fields: swap-clip → clip_index (int), new_card_id, store, corpus_root, transcript_dir. regen-art → slot ('intro'|'outro'). swap-art → slot, image_path. CLI flag mapping is mechanical (see action.ts switch). Exit codes from cosmic-video revise: 0 on pass/warn; 2 on validated expected failure (REVISE_PLAN_NOT_FOUND, RENDER_PLAN_SCHEMA_MISMATCH, REVISE_CLIP_INDEX_OUT_OF_BOUNDS, REVISE_NEW_CARD_NOT_FOUND, REVISE_NEW_CARD_NO_EVIDENCE, USER_ASSET_PATH_MISSING, INVALID_SLOT, PROJECT_ROOT_UNRESOLVED); 1 on UNHANDLED (no parseable last-line JSON — A_REEL_REVISE must NOT attempt to parse stdout on exit 1). COSMIC_PROJECT_ROOT (P3 CR-6/CR-8): when set by the parent, the CLI auto-resolves projectRoot and the preview-regen step writes under <projectRoot>/media/reels/; inherited from parent env via Bun.spawn — no Input field required.",
+  "pipeline_error_codes": [
+    {"code": "REVISE_PLAN_NOT_FOUND",              "category": "not_found",   "retryable": false},
+    {"code": "RENDER_PLAN_SCHEMA_MISMATCH",        "category": "validation",  "retryable": false},
+    {"code": "REVISE_CLIP_INDEX_OUT_OF_BOUNDS",    "category": "validation",  "retryable": false},
+    {"code": "REVISE_NEW_CARD_NOT_FOUND",          "category": "not_found",   "retryable": false},
+    {"code": "REVISE_NEW_CARD_NO_EVIDENCE",        "category": "not_found",   "retryable": false},
+    {"code": "USER_ASSET_PATH_MISSING",            "category": "not_found",   "retryable": false},
+    {"code": "INVALID_SLOT",                       "category": "validation",  "retryable": false},
+    {"code": "PREVIEW_FFMPEG_FAILED",              "category": "unavailable", "retryable": false},
+    {"code": "UNKNOWN_OP",                         "category": "validation",  "retryable": false},
+    {"code": "UNEXPECTED_FAILURE",                 "category": "internal",    "retryable": false},
+    {"code": "MISSING_REQUIRED",                   "category": "validation",  "retryable": false},
+    {"code": "NO_SHELL",                           "category": "internal",    "retryable": false},
+    {"code": "SUMMARY_PARSE_FAILED",               "category": "schema",      "retryable": false},
+    {"code": "PROJECT_ROOT_UNRESOLVED",            "category": "validation",  "retryable": false},
+    {"code": "MEDIA_VIDEO_NOT_FOUND",              "category": "not_found",   "retryable": false},
+    {"code": "STORE_PATH_INPUT_REMOVED",           "category": "validation",  "retryable": false},
+    {"code": "INVALID_STORE_NAME",                 "category": "validation",  "retryable": false},
+    {"code": "CORPUS_ROOT_UNRESOLVED",             "category": "validation",  "retryable": false},
+    {"code": "STORE_NOT_FOUND",                    "category": "not_found",   "retryable": false},
+    {"code": "STORE_SCHEMA_INCOMPATIBLE",          "category": "card_store",  "retryable": false},
+    {"code": "STORE_TIMEOUT",                      "category": "card_store",  "retryable": true}
+  ]
+}

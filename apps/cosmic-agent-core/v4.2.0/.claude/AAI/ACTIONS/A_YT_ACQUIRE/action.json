@@ -1,0 +1,30 @@
+{
+  "name": "A_YT_ACQUIRE",
+  "version": "1.2.0",
+  "description": "Acquire one source (URL | playlist | local file) and transcribe to {text, words[]} sidecar.",
+  "input": {
+    "url":         { "type": "string" },
+    "playlist":    { "type": "string" },
+    "single_file": { "type": "string", "description": "Path to a local audio/video file; mutually exclusive with url/playlist." },
+    "video_id":    { "type": "string" },
+    "out_dir":     { "type": "string", "required": true },
+    "audio_dir":   { "type": "string", "description": "Override destination for downloaded audio. Default: <cwd>/transcribe-artifacts/audio." }
+  },
+  "input_constraints": {
+    "oneOfRequired": ["url", "playlist", "single_file"]
+  },
+  "output": {
+    "video_id":              { "type": "string" },
+    "source_url":            { "type": "string" },
+    "audio_path":            { "type": "string" },
+    "transcript_path":       { "type": "string" },
+    "transcript_json_path":  { "type": "string" },
+    "transcript_dir":        { "type": "string" },
+    "words_path":            { "type": "string" },
+    "duration_s":            { "type": "number" }
+  },
+  "requires": ["shell"],
+  "side_effect": "side-effecting-network",
+  "tags": ["video", "youtube", "transcribe"],
+  "license": "MIT"
+}

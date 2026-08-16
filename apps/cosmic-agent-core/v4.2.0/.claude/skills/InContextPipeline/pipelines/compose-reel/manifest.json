@@ -1,0 +1,12 @@
+{
+  "name": "compose-reel",
+  "description": "Harness-driven reel compose (STEP_2→7): turn-1 intake already parsed the brief and seeded passthrough, so the armed pipeline starts at hub discovery — agent navigates Zettelkasten (Übersichten + Folgezettel + Schlagwortregister) one step per 'go', emits walk → kasten-cli builds clips → kasten-cli assembles + writes plan → composeSlashBridge --mode accept renders via A_REEL_RENDER_COMPOSED.",
+  "steps": [
+    "STEP_2_DISCOVER_HUBS",
+    "STEP_3_PICK_SEEDS",
+    "STEP_4_NAVIGATE_WALK",
+    "STEP_5_BUILD_CLIPS",
+    "STEP_6_ASSEMBLE_AND_WRITE_PLAN",
+    "STEP_7_RENDER"
+  ]
+}

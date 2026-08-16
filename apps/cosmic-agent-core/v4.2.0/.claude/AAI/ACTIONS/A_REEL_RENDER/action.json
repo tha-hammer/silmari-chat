@@ -1,0 +1,17 @@
+{
+  "name": "A_REEL_RENDER",
+  "version": "1.0.0",
+  "description": "Render a reel-plan JSON to an MP4 via cosmic-video reel.",
+  "input": {
+    "plan_path": { "type": "string", "required": true },
+    "out":       { "type": "string", "required": true },
+    "video_id":  { "type": "string" }
+  },
+  "output": {
+    "reel_path":  { "type": "string" },
+    "duration_s": { "type": "number" }
+  },
+  "env_vars": ["VIDEO_PIPELINE_ROOT", "COSMIC_VIDEO_ROOT"],
+  "requires": ["shell"],
+  "side_effect": "idempotent-pure"
+}

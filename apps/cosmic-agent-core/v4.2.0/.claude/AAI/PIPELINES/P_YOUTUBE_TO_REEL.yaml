@@ -1,0 +1,71 @@
+name: P_YOUTUBE_TO_REEL
+version: 1.0.0
+description: >
+  YouTube URL | playlist | local audio file → graph-selected short-form reel MP4.
+  Pipes:
+    A_YT_ACQUIRE → A_CASCADE_EXTRACT → A_CASCADE_INGEST →
+    A_BRIDGE_LABELS → A_REEL_PLAN → A_REEL_RENDER.
+  All cards/labels/edges land in apps/cosmic-video/store/<video_id>.card-graph.sqlite
+  via the vendored silmari-store binary; cosmic-video reads it directly with no
+  intermediate export step. Each step's `...upstream` passthrough accumulates
+  video_id, transcript_path, card_graph_path, plan_path, reel_path so the final
+  action has every field.
+
+# Pipeline-level inputs. Each entry below is one CLI flag the operator may pass
+# to `pai pipeline P_YOUTUBE_TO_REEL <flags>`. The `target:` field names the
+# Action and field that receives this flag's value at runtime. Fields not bound
+# here flow through normal stage-to-stage passthrough. See SC7 for the full pipe
+# accumulation vocabulary.
+inputs:
+  url:             { type: string,  required: false, target: A_YT_ACQUIRE.url }
+  playlist:        { type: string,  required: false, target: A_YT_ACQUIRE.playlist }
+  single_file:     { type: string,  required: false, target: A_YT_ACQUIRE.single_file }
+  video_id:        { type: string,  required: false, target: A_YT_ACQUIRE.video_id }
+  out_dir:         { type: string,  required: true,  target: A_YT_ACQUIRE.out_dir }
+  extracted_dir:   { type: string,  required: false, target: A_CASCADE_EXTRACT.extracted_dir, default_from: A_YT_ACQUIRE.out_dir }
+  card_graph_path: { type: string,  required: false, target: A_CASCADE_INGEST.card_graph_path }
+  transcript_dir:  { type: string,  required: false, target: A_REEL_PLAN.transcript_dir, default_from: A_YT_ACQUIRE.transcript_dir }
+  seed:            { type: string,  required: false, target: A_REEL_PLAN.seed,   default: auto }
+  min:             { type: number,  required: false, target: A_REEL_PLAN.min,    default: 30 }
+  target:          { type: number,  required: false, target: A_REEL_PLAN.target, default: 60 }
+  max:             { type: number,  required: false, target: A_REEL_PLAN.max,    default: 90 }
+  plan_path:       { type: string,  required: false, target: A_REEL_PLAN.plan_path }
+  out:             { type: string,  required: true,  target: A_REEL_RENDER.out }
+
+# Exactly one of url / playlist / single_file MUST be provided; A_YT_ACQUIRE
+# enforces this at the Action boundary (mutually-exclusive validation).
+input_constraints:
+  oneOf:
+    - [url]
+    - [playlist]
+    - [single_file]
+
+actions:
+  - A_YT_ACQUIRE
+  - A_CASCADE_EXTRACT
+  - A_CASCADE_INGEST
+  - A_BRIDGE_LABELS
+  - A_REEL_PLAN
+  - A_REEL_RENDER
+
+# Retry policy — keyed on PipelineError.category and the per-Action policy in
+# SC5. The runner honors `retryable` on the thrown error PLUS the bounds below.
+# Categories not listed here default to no retry.
+retries:
+  A_YT_ACQUIRE:
+    rate_limit:  { attempts: 4, strategy: exp_backoff, base_ms: 2000, jitter: 0.2 }
+    io:          { attempts: 3, strategy: linear,      base_ms: 5000 }
+    subprocess:  { attempts: 2, strategy: linear,      base_ms: 2000 }
+  A_CASCADE_EXTRACT:
+    rate_limit:  { attempts: 4, strategy: exp_backoff, base_ms: 4000, jitter: 0.2 }
+    subprocess:  { attempts: 2, strategy: linear,      base_ms: 2000 }
+  A_CASCADE_INGEST:
+    concurrency: { attempts: 6, strategy: exp_backoff, base_ms: 200,  jitter: 0.1 }
+    subprocess:  { attempts: 2, strategy: linear,      base_ms: 2000 }
+  A_BRIDGE_LABELS:
+    concurrency: { attempts: 6, strategy: exp_backoff, base_ms: 200,  jitter: 0.1 }
+    subprocess:  { attempts: 2, strategy: linear,      base_ms: 2000 }
+  A_REEL_PLAN:
+    subprocess:  { attempts: 2, strategy: linear,      base_ms: 2000 }
+  A_REEL_RENDER:
+    subprocess:  { attempts: 2, strategy: linear,      base_ms: 2000 }

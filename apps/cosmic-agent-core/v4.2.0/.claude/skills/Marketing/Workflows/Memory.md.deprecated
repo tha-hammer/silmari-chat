@@ -1,0 +1,144 @@
+# Memory Integration — Silmari for the Marketing Skill
+
+> ⚠️ **DEPRECATED WORKFLOW (2026-04-11 AAI rebrand):** Every `zettel recall/save/link/hub` invocation below must be translated to its `mcp__silmari__zk_*` MCP tool equivalent before this workflow can run. Mapping table lives at `/home/maceo/Dev/silmari-agent-memory/AAI/Algorithm/migration_v3.7.0_shape_diff.md`. The bash shell-variable capture pattern (`HUB_ID=$(zettel hub ... | jq -r '.id')`) does NOT translate directly — rewrite each capture as a prompt instruction that tells the LLM to call the tool, read the returned JSON id, then call the next tool with that id. Until this file is rewritten, invoking the Marketing skill will fail at the first `zettel` call. Tracked in Plan 003 Phase B as a follow-up.
+
+**Purpose:** Make copy platform work compounding instead of amnesiac. Each invocation should *read what the user already built* before starting, and *write what was produced* when a phase completes, so the next session starts from prior context instead of a blank slate.
+
+**Mechanism (legacy, pre-rebrand):** the `zettel` CLI (installed at `~/.local/bin/zettel`) talked to the cosmic-agent-memory engine over HTTP at `localhost:8787`. Post-rebrand, the same functionality is exposed as `mcp__silmari__zk_*` tools over stdio from `silmari-mcp`. The save/recall/link/hub verbs follow Zettelkasten methodology — atomic notes, source tags as provenance, folgezettel chains for branching, hubs for navigable canon.
+
+**Two mandatory integration points**, mirroring the Research skill's pattern.
+
+---
+
+## Valid dependency edge types (CRITICAL reference)
+
+| Type | When to use in Marketing |
+|---|---|
+| `discovered-from` | Section expansions, summaries — "this bead was discovered while working on {target}" |
+| `relates-to` | Cross-section links (e.g., USP relates to Claims & Proof), cross-topic bridges |
+| `related` | Chronological "previous bead in scope". Engine auto-interlink. |
+| `supersedes` | When a refined USP replaces the initial one (usp1 → usp5 progression) |
+| `duplicates` | When two beads cover the same content — prefer zettel save dedup over this |
+
+**Types that LOOK right but are NOT valid:**
+- `derived-from` — use `discovered-from` instead
+- `reinforces` — use `relates-to` instead
+- `extends` / `elaborates` — use `relates-to` instead
+
+---
+
+## Zettelkasten conventions for Marketing
+
+| Convention | Value | Why |
+|---|---|---|
+| **Scope** | default (inherits from `$ZETTEL_SCOPE`) | One library, cross-topic discovery |
+| **Source tag** | `marketing-{topic-slug}-{phase}` | Provenance via source tag. Phase is `understanding`, `improvement`, `expand-{section-id}`, `implement`, or `summary` |
+| **Type** | `fact` for checklist sections & expansions, `learning` for synthesis, `signal` for surprising findings about the user's market, `preference` for user-revealed marketing preferences | Same discipline as the Algorithm |
+| **Hub** | `zettel hub topic-hub "marketing-{topic-slug}"` | One hub per copy platform. All phase beads link into it. |
+
+**Topic-slug rules:** lowercase, hyphen-separated, no special chars. Derived from the user's stated goal/product.
+
+---
+
+## Integration point 1 — RECALL at workflow entry (MANDATORY)
+
+**Run BEFORE starting any phase work.** This surfaces prior copy platform work on the same or adjacent topics.
+
+```bash
+zettel recall "{product/service keywords, 4-8 words}" -l 5 -d connected
+```
+
+**Surface results as:**
+
+```
+🧠 PRIOR MARKETING WORK:
+  • {br-id} ({source-tag}, {time-ago}) — {first 80 chars of content}
+  • {br-id} ({source-tag}, {time-ago}) — {first 80 chars of content}
+```
+
+If recall returns zero results, write `🧠 PRIOR MARKETING WORK: none` and continue.
+
+**Classifier — what to do with the hits.** For each hit, check the source tag:
+
+| Source tag pattern | Meaning | Action |
+|---|---|---|
+| `marketing-{same-slug}-*` | Prior copy platform work on this exact product/service | **PAUSE and ask:** "Found prior copy platform work on {topic} from {date}, currently at {phase} phase. Resume (continue where you left off) or Fresh (start over)?" |
+| `marketing-{adjacent-slug}-*` | Work on a related product/service | Surface as context: "Prior marketing work on {adjacent-topic} found — may inform audience/pain insights." |
+| `research-{related-slug}-*` | Prior research on a related topic | Surface as context: "Research on {topic} available — use to inform checklist?" |
+
+**This is one of the few places the Marketing skill explicitly waits for user input.** Resume vs. fresh is too important to autopilot.
+
+---
+
+## Integration point 2 — SAVE at phase completion (MANDATORY)
+
+**Run AFTER each phase completes**, before proceeding to the next phase. The goal: make the *next* session able to resume at exactly the right point.
+
+### Save order
+
+1. **Topic hub first** (idempotent):
+   ```bash
+   HUB_ID=$(zettel hub topic-hub "marketing-{topic-slug}" | jq -r '.id')
+   ```
+
+2. **Phase completion** as a `fact` bead:
+   ```bash
+   PHASE_ID=$(zettel save "{phase name}: {2-3 sentence summary of what was established}" \
+     -t fact -S "marketing-{topic-slug}-{phase}" --status open | jq -r '.id')
+   ```
+
+3. **During Expand phase — each section expansion** as a `fact` bead, linked to the hub:
+   ```bash
+   SECTION_ID=$(zettel save "{section title}: {key content summary}" \
+     -t fact -S "marketing-{topic-slug}-expand-{section-id}" --status open | jq -r '.id')
+   zettel link "$SECTION_ID" "$HUB_ID" discovered-from
+   ```
+
+4. **USP iterations** — when usp5 completes, save the final USP as a `fact` bead that `supersedes` the usp1 bead:
+   ```bash
+   FINAL_USP_ID=$(zettel save "{final USP}" \
+     -t fact -S "marketing-{topic-slug}-expand-usp-final" --status open | jq -r '.id')
+   zettel link "$FINAL_USP_ID" "$USP1_ID" supersedes
+   ```
+
+5. **Final summary** (after Implement phase) as a `learning` bead:
+   ```bash
+   SUMMARY_ID=$(zettel save "{executive synthesis of the copy platform}" \
+     -t learning -S "marketing-{topic-slug}-summary" --status open | jq -r '.id')
+   zettel link "$SUMMARY_ID" "$HUB_ID" discovered-from
+   ```
+
+### What NOT to save
+
+- **Raw user responses** — those are in the conversation transcript
+- **Intermediate question-answer exchanges** — only save the synthesized checklist sections
+- **Duplicate section content** — if re-expanding a section, `supersedes` the old bead
+- **Empty phases** — if a session ends mid-phase, don't save a partial bead
+
+---
+
+## Per-phase integration matrix
+
+| Phase | RECALL | SAVE |
+|---|---|---|
+| Understanding | MANDATORY (entry) | MANDATORY (on `<UNDERSTANDING_COMPLETE>`) |
+| Improvement | via state file | MANDATORY (on `<IMPROVEMENT_COMPLETE>`) |
+| Expand | via state file | MANDATORY (per section completion) |
+| Implement | via state file | MANDATORY (final summary after copy is written) |
+
+---
+
+## Failure mode handling
+
+If `zettel status` returns `available: false`, or any zettel call fails:
+
+1. Log ONCE: `Warning: Memory unavailable — marketing workflow running without zettel integration`
+2. Skip both RECALL and SAVE phases
+3. **Never block Marketing progress on memory unavailability.** The engine is best-effort, the work is mandatory.
+
+Preflight:
+```bash
+zettel status >/dev/null 2>&1 || { echo "Warning: Memory unavailable, skipping zettel integration"; export MARKETING_SKIP_MEMORY=1; }
+```
+
+Check `$MARKETING_SKIP_MEMORY` before each `zettel` call.

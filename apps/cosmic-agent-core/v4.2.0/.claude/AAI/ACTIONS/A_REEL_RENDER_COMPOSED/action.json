@@ -1,0 +1,31 @@
+{
+  "name": "A_REEL_RENDER_COMPOSED",
+  "version": "1.0.0",
+  "description": "Render a ComposedPlan (schema_version 'compose-p2') to MP4 via cosmic-video render-composed-plan. Distinct from A_REEL_RENDER (which renders a P1 reel-plan).",
+  "input": {
+    "plan_path": { "type": "string", "required": true, "description": "Absolute path to the ComposedPlan JSON (schema_version 'compose-p2')" },
+    "out":       { "type": "string", "required": true, "description": "Absolute path for the rendered MP4 output" }
+  },
+  "output": {
+    "reel_path":  { "type": "string" },
+    "duration_s": { "type": "number" },
+    "status":     { "type": "string", "enum": ["pass", "fail"] },
+    "error":      { "type": "string", "required": false, "description": "Present iff status === 'fail'; pipelineError code (e.g. RENDER_FFMPEG_FAILED, RENDER_PLAN_SCHEMA_MISMATCH)" }
+  },
+  "env_vars": ["VIDEO_PIPELINE_ROOT", "COSMIC_VIDEO_ROOT", "COSMIC_PROJECT_ROOT"],
+  "requires": ["shell"],
+  "side_effect": "file-mutation",
+  "notes": "Exit codes from cosmic-video render-composed-plan: 0 on success; 2 on validated/expected failure (RENDER_PLAN_FILE_NOT_FOUND, RENDER_PLAN_PARSE_FAILED, RENDER_PLAN_SCHEMA_MISMATCH, RENDER_FFMPEG_FAILED, PROJECT_ROOT_UNRESOLVED); 1 on UNHANDLED (no parseable last-line JSON — A_REEL_RENDER_COMPOSED must NOT attempt to parse stdout on exit 1). COSMIC_PROJECT_ROOT (P3 CR-6/CR-8): when set by the parent, the CLI auto-resolves projectRoot and defaults --out to <projectRoot>/media/reels/<basename>.mp4 if the caller omits it; inherited from parent env via Bun.spawn — no Input field required.",
+  "pipeline_error_codes": [
+    {"code": "RENDER_PLAN_FILE_NOT_FOUND",  "category": "not_found",    "retryable": false},
+    {"code": "RENDER_PLAN_PARSE_FAILED",    "category": "validation",   "retryable": false},
+    {"code": "RENDER_PLAN_SCHEMA_MISMATCH", "category": "validation",   "retryable": false},
+    {"code": "RENDER_FFMPEG_FAILED",        "category": "unavailable",  "retryable": false},
+    {"code": "UNEXPECTED_FAILURE",          "category": "internal",     "retryable": false},
+    {"code": "MISSING_REQUIRED",            "category": "validation",   "retryable": false},
+    {"code": "NO_SHELL",                    "category": "internal",     "retryable": false},
+    {"code": "SUMMARY_PARSE_FAILED",        "category": "schema",       "retryable": false},
+    {"code": "PROJECT_ROOT_UNRESOLVED",     "category": "validation",   "retryable": false},
+    {"code": "MEDIA_VIDEO_NOT_FOUND",       "category": "not_found",    "retryable": false}
+  ]
+}

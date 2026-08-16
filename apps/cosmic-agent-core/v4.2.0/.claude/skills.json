@@ -1,0 +1,2560 @@
+{
+  "version": "4.2.0",
+  "generatedAt": "2026-05-09T15:01:39Z",
+  "rootRelative": ".claude/skills",
+  "packs": [
+    {
+      "name": "Agents",
+      "path": "Agents",
+      "skills": [
+        {
+          "name": "Agents",
+          "path": "Agents",
+          "skillMd": "Agents/SKILL.md",
+          "description": "Compose CUSTOM agents from Base Traits + Voice + Specialization for specialized perspectives. USE WHEN create custom agents, spin up agents, specialized agents, agent personalities, available traits, list traits, agent voices, compose agent, load agent context, agent profile, spawn parallel agents, launch agents. NOT for agent teams/swarms (use Delegation skill → TeamCreate).",
+          "triggers": [
+            "create custom agents",
+            "spin up agents",
+            "specialized agents",
+            "agent personalities",
+            "available traits",
+            "list traits",
+            "agent voices",
+            "compose agent",
+            "load agent context",
+            "agent profile",
+            "spawn parallel agents",
+            "launch agents"
+          ],
+          "workflows": [
+            {
+              "name": "CreateCustomAgent",
+              "path": "Agents/Workflows/CreateCustomAgent.md"
+            },
+            {
+              "name": "ListTraits",
+              "path": "Agents/Workflows/ListTraits.md"
+            },
+            {
+              "name": "SpawnParallelAgents",
+              "path": "Agents/Workflows/SpawnParallelAgents.md"
+            }
+          ],
+          "tools": [
+            "Agents/Tools/ComposeAgent.ts",
+            "Agents/Tools/LoadAgentContext.ts",
+            "Agents/Tools/SpawnAgentWithProfile.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "bd-to-br-migration",
+      "path": "bd-to-br-migration",
+      "skills": [
+        {
+          "name": "bd-to-br-migration",
+          "path": "bd-to-br-migration",
+          "skillMd": "bd-to-br-migration/SKILL.md",
+          "description": "Migrate docs from bd (beads) to br (beads_rust). Use when updating AGENTS.md, converting bd commands, \"bd sync\" → \"br sync --flush-only\", or beads migration.",
+          "triggers": [
+            "updating AGENTS.md",
+            "converting bd commands",
+            "\"bd sync\" → \"br sync --flush-only\"",
+            "or beads migration"
+          ],
+          "workflows": [],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "ContentAnalysis",
+      "path": "ContentAnalysis",
+      "skills": [
+        {
+          "name": "ContentAnalysis",
+          "path": "ContentAnalysis",
+          "skillMd": "ContentAnalysis/SKILL.md",
+          "description": "Content extraction and analysis — wisdom extraction from videos, podcasts, articles, and YouTube. USE WHEN extract wisdom, content analysis, analyze content, insight report, analyze video, analyze podcast, extract insights, key takeaways, what did I miss, extract from YouTube.",
+          "triggers": [
+            "extract wisdom",
+            "content analysis",
+            "analyze content",
+            "insight report",
+            "analyze video",
+            "analyze podcast",
+            "extract insights",
+            "key takeaways",
+            "what did I miss",
+            "extract from YouTube"
+          ],
+          "workflows": [],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "ExtractWisdom",
+          "path": "ContentAnalysis/ExtractWisdom",
+          "skillMd": "ContentAnalysis/ExtractWisdom/SKILL.md",
+          "description": "Content-adaptive wisdom extraction — detects what domains exist in content and builds custom sections (not static IDEAS/QUOTES). Produces tailored insight reports from videos, podcasts, articles. USE WHEN extract wisdom, analyze video, analyze podcast, extract insights, what's interesting, extract from YouTube, what did I miss, key takeaways.",
+          "triggers": [
+            "extract wisdom",
+            "analyze video",
+            "analyze podcast",
+            "extract insights",
+            "what's interesting",
+            "extract from YouTube",
+            "what did I miss",
+            "key takeaways"
+          ],
+          "workflows": [
+            {
+              "name": "Extract",
+              "path": "ContentAnalysis/ExtractWisdom/Workflows/Extract.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "copywriting",
+      "path": "copywriting",
+      "skills": [
+        {
+          "name": "Copywriting",
+          "path": "copywriting",
+          "skillMd": "copywriting/SKILL.md",
+          "description": "Write copy — the craft of producing actual headlines, emails, sales messages, LinkedIn posts, blog articles, sales stories, landing page copy, and ad copy. Use the copywriting skill AFTER a marketing foundation exists (typically built by the Marketing skill) OR for standalone writing tasks with a clear brief. The copywriting skill does NOT build marketing campaigns or copy platforms from scratch — for that, use the Marketing skill. USE WHEN the user says \"write copy\", \"write sales copy\", \"write an email\", \"write a headline\", \"write a story\", \"write a blog post\", \"write a LinkedIn post\", \"write an ad\", \"draft copy\", \"rewrite copy\", \"email sequence\", \"content writer\", \"sales story\", \"Silmari\", \"USP formula\", \"AIDA writing\", \"headline writing\", \"persuasive writing\", \"copywriting\".",
+          "triggers": [
+            "the user says \"write copy\"",
+            "\"write sales copy\"",
+            "\"write an email\"",
+            "\"write a headline\"",
+            "\"write a story\"",
+            "\"write a blog post\"",
+            "\"write a LinkedIn post\"",
+            "\"write an ad\"",
+            "\"draft copy\"",
+            "\"rewrite copy\"",
+            "\"email sequence\"",
+            "\"content writer\"",
+            "\"sales story\"",
+            "\"Silmari\"",
+            "\"USP formula\"",
+            "\"AIDA writing\"",
+            "\"headline writing\"",
+            "\"persuasive writing\"",
+            "\"copywriting\""
+          ],
+          "workflows": [
+            {
+              "name": "ContentWriter",
+              "path": "copywriting/Workflows/ContentWriter.md"
+            },
+            {
+              "name": "CopyPlatform",
+              "path": "copywriting/Workflows/CopyPlatform.md"
+            },
+            {
+              "name": "SalesStory",
+              "path": "copywriting/Workflows/SalesStory.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "find-skills",
+      "path": "find-skills",
+      "skills": [
+        {
+          "name": "find-skills",
+          "path": "find-skills",
+          "skillMd": "find-skills/SKILL.md",
+          "description": "Helps users discover and install agent skills when they ask questions like \"how do I do X\", \"find a skill for X\", \"is there a skill that can...\", or express interest in extending capabilities. This skill should be used when the user is looking for functionality that might exist as an installable skill.",
+          "triggers": [],
+          "workflows": [],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "Investigation",
+      "path": "Investigation",
+      "skills": [
+        {
+          "name": "Investigation",
+          "path": "Investigation",
+          "skillMd": "Investigation/SKILL.md",
+          "description": "OSINT and people-finding — structured investigations, company intel, due diligence, and ethical people search across public records and social media. USE WHEN OSINT, due diligence, company intel, background check, find person, locate, people search, reconnect, public records, reverse lookup, social media search, verify identity, domain lookup, entity lookup, organization lookup, company lookup, threat intel.",
+          "triggers": [
+            "OSINT",
+            "due diligence",
+            "company intel",
+            "background check",
+            "find person",
+            "locate",
+            "people search",
+            "reconnect",
+            "public records",
+            "reverse lookup",
+            "social media search",
+            "verify identity",
+            "domain lookup",
+            "entity lookup",
+            "organization lookup",
+            "company lookup",
+            "threat intel"
+          ],
+          "workflows": [],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "OSINT",
+          "path": "Investigation/OSINT",
+          "skillMd": "Investigation/OSINT/SKILL.md",
+          "description": "Structured OSINT investigations — people lookup, company intel, investment due diligence, entity/threat intel, domain recon, organization research using public sources with ethical authorization framework. USE WHEN OSINT, due diligence, background check, research person, company intel, investigate, company lookup, domain lookup, entity lookup, organization lookup, threat intel, discover OSINT sources.",
+          "triggers": [
+            "OSINT",
+            "due diligence",
+            "background check",
+            "research person",
+            "company intel",
+            "investigate",
+            "company lookup",
+            "domain lookup",
+            "entity lookup",
+            "organization lookup",
+            "threat intel",
+            "discover OSINT sources"
+          ],
+          "workflows": [
+            {
+              "name": "CompanyDueDiligence",
+              "path": "Investigation/OSINT/Workflows/CompanyDueDiligence.md"
+            },
+            {
+              "name": "CompanyLookup",
+              "path": "Investigation/OSINT/Workflows/CompanyLookup.md"
+            },
+            {
+              "name": "DiscoverOSINTSources",
+              "path": "Investigation/OSINT/Workflows/DiscoverOSINTSources.md"
+            },
+            {
+              "name": "DomainLookup",
+              "path": "Investigation/OSINT/Workflows/DomainLookup.md"
+            },
+            {
+              "name": "EntityLookup",
+              "path": "Investigation/OSINT/Workflows/EntityLookup.md"
+            },
+            {
+              "name": "OrganizationLookup",
+              "path": "Investigation/OSINT/Workflows/OrganizationLookup.md"
+            },
+            {
+              "name": "PeopleLookup",
+              "path": "Investigation/OSINT/Workflows/PeopleLookup.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "PrivateInvestigator",
+          "path": "Investigation/PrivateInvestigator",
+          "skillMd": "Investigation/PrivateInvestigator/SKILL.md",
+          "description": "Ethical people-finding using 15 parallel research agents (45 search threads) across public records, social media, reverse lookups. Public data only, no pretexting. USE WHEN find person, locate, reconnect, people search, skip trace, reverse lookup, social media search, public records search, verify identity.",
+          "triggers": [
+            "find person",
+            "locate",
+            "reconnect",
+            "people search",
+            "skip trace",
+            "reverse lookup",
+            "social media search",
+            "public records search",
+            "verify identity"
+          ],
+          "workflows": [
+            {
+              "name": "FindPerson",
+              "path": "Investigation/PrivateInvestigator/Workflows/FindPerson.md"
+            },
+            {
+              "name": "PublicRecordsSearch",
+              "path": "Investigation/PrivateInvestigator/Workflows/PublicRecordsSearch.md"
+            },
+            {
+              "name": "ReverseLookup",
+              "path": "Investigation/PrivateInvestigator/Workflows/ReverseLookup.md"
+            },
+            {
+              "name": "SocialMediaSearch",
+              "path": "Investigation/PrivateInvestigator/Workflows/SocialMediaSearch.md"
+            },
+            {
+              "name": "VerifyIdentity",
+              "path": "Investigation/PrivateInvestigator/Workflows/VerifyIdentity.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "LifeOS",
+      "path": "LifeOS",
+      "skills": [
+        {
+          "name": "LifeOS",
+          "path": "LifeOS",
+          "skillMd": "LifeOS/SKILL.md",
+          "description": "Life OS and project analysis — goals, dependencies, beliefs, wisdom, books, movies, narrative points, interview extraction, McKinsey reports, and project dashboards. USE WHEN LifeOS, life goals, projects, dependencies, books, movies, beliefs, wisdom, update LifeOS, narrative points, interview extraction, write report, McKinsey report, LifeOS report, project analysis, dashboard, n=24.",
+          "triggers": [
+            "LifeOS",
+            "life goals",
+            "projects",
+            "dependencies",
+            "books",
+            "movies",
+            "beliefs",
+            "wisdom",
+            "update LifeOS",
+            "narrative points",
+            "interview extraction",
+            "write report",
+            "McKinsey report",
+            "LifeOS report",
+            "project analysis",
+            "dashboard",
+            "n=24"
+          ],
+          "workflows": [
+            {
+              "name": "CreateNarrativePoints",
+              "path": "LifeOS/Workflows/CreateNarrativePoints.md"
+            },
+            {
+              "name": "InterviewExtraction",
+              "path": "LifeOS/Workflows/InterviewExtraction.md"
+            },
+            {
+              "name": "Update",
+              "path": "LifeOS/Workflows/Update.md"
+            },
+            {
+              "name": "WriteReport",
+              "path": "LifeOS/Workflows/WriteReport.md"
+            }
+          ],
+          "tools": [
+            "LifeOS/Tools/UpdateTelos.ts"
+          ],
+          "templates": [
+            "LifeOS/DashboardTemplate",
+            "LifeOS/ReportTemplate"
+          ],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "Marketing",
+      "path": "Marketing",
+      "skills": [
+        {
+          "name": "Marketing",
+          "path": "Marketing",
+          "skillMd": "Marketing/SKILL.md",
+          "description": "Create marketing for any product, service, or offer. Marketing is the PRIMARY entry point for ANY request to build, create, make, or plan marketing for something — it runs a rigid 4-phase process (understand audience, improve checklist, expand 18 sections, implement) that produces a complete copy platform foundation. USE WHEN the user says \"create marketing\", \"build marketing\", \"make marketing\", \"do marketing\", \"plan marketing\", \"marketing for [anything]\", \"some marketing\", \"marketing campaign\", \"marketing plan\", \"marketing checklist\", \"marketing platform\", \"marketing foundation\", \"marketing research\", \"customer research\", \"ICP\", \"brand discovery\", \"campaign promise\", \"one belief statement\", \"objection framework\", \"build a copy platform\", \"copy platform\", \"persuasion checklist\", \"market a product\", \"market a service\", \"market an offer\".",
+          "triggers": [
+            "the user says \"create marketing\"",
+            "\"build marketing\"",
+            "\"make marketing\"",
+            "\"do marketing\"",
+            "\"plan marketing\"",
+            "\"marketing for [anything]\"",
+            "\"some marketing\"",
+            "\"marketing campaign\"",
+            "\"marketing plan\"",
+            "\"marketing checklist\"",
+            "\"marketing platform\"",
+            "\"marketing foundation\"",
+            "\"marketing research\"",
+            "\"customer research\"",
+            "\"ICP\"",
+            "\"brand discovery\"",
+            "\"campaign promise\"",
+            "\"one belief statement\"",
+            "\"objection framework\"",
+            "\"build a copy platform\"",
+            "\"copy platform\"",
+            "\"persuasion checklist\"",
+            "\"market a product\"",
+            "\"market a service\"",
+            "\"market an offer\""
+          ],
+          "workflows": [
+            {
+              "name": "ClarityAnalyzer",
+              "path": "Marketing/Workflows/ClarityAnalyzer.md"
+            },
+            {
+              "name": "ContentReviewer",
+              "path": "Marketing/Workflows/ContentReviewer.md"
+            },
+            {
+              "name": "ContentReviewer_SeoArticleRubric",
+              "path": "Marketing/Workflows/ContentReviewer_SeoArticleRubric.md"
+            },
+            {
+              "name": "CopyPlatform",
+              "path": "Marketing/Workflows/CopyPlatform.md"
+            },
+            {
+              "name": "DeSlop",
+              "path": "Marketing/Workflows/DeSlop.md"
+            },
+            {
+              "name": "DeckBuilder",
+              "path": "Marketing/Workflows/DeckBuilder.md"
+            },
+            {
+              "name": "DeckBuilder_DeckStructures",
+              "path": "Marketing/Workflows/DeckBuilder_DeckStructures.md"
+            },
+            {
+              "name": "DeckBuilder_SlideWritingGuide",
+              "path": "Marketing/Workflows/DeckBuilder_SlideWritingGuide.md"
+            },
+            {
+              "name": "DeckBuilder_TemplateLayoutMap",
+              "path": "Marketing/Workflows/DeckBuilder_TemplateLayoutMap.md"
+            },
+            {
+              "name": "EmailNurturePlanner",
+              "path": "Marketing/Workflows/EmailNurturePlanner.md"
+            },
+            {
+              "name": "GhostPaper",
+              "path": "Marketing/Workflows/GhostPaper.md"
+            },
+            {
+              "name": "InternalLinkingOptimizer",
+              "path": "Marketing/Workflows/InternalLinkingOptimizer.md"
+            },
+            {
+              "name": "InternalLinkingOptimizer_LinkArchitecturePatterns",
+              "path": "Marketing/Workflows/InternalLinkingOptimizer_LinkArchitecturePatterns.md"
+            },
+            {
+              "name": "InternalLinkingOptimizer_LinkingExample",
+              "path": "Marketing/Workflows/InternalLinkingOptimizer_LinkingExample.md"
+            },
+            {
+              "name": "InternalLinkingOptimizer_LinkingTemplates",
+              "path": "Marketing/Workflows/InternalLinkingOptimizer_LinkingTemplates.md"
+            },
+            {
+              "name": "LinkedinArticleWriter",
+              "path": "Marketing/Workflows/LinkedinArticleWriter.md"
+            },
+            {
+              "name": "MarketingResearch",
+              "path": "Marketing/Workflows/MarketingResearch.md"
+            },
+            {
+              "name": "Memory",
+              "path": "Marketing/Workflows/Memory.md"
+            },
+            {
+              "name": "NewsletterAdReview",
+              "path": "Marketing/Workflows/NewsletterAdReview.md"
+            },
+            {
+              "name": "NewsletterAdWriter",
+              "path": "Marketing/Workflows/NewsletterAdWriter.md"
+            },
+            {
+              "name": "PageCro",
+              "path": "Marketing/Workflows/PageCro.md"
+            },
+            {
+              "name": "PageCro_CopyPatterns",
+              "path": "Marketing/Workflows/PageCro_CopyPatterns.md"
+            },
+            {
+              "name": "PageCro_CroChecklist",
+              "path": "Marketing/Workflows/PageCro_CroChecklist.md"
+            },
+            {
+              "name": "PageCro_Experiments",
+              "path": "Marketing/Workflows/PageCro_Experiments.md"
+            },
+            {
+              "name": "PageCro_PageTypeFrameworks",
+              "path": "Marketing/Workflows/PageCro_PageTypeFrameworks.md"
+            },
+            {
+              "name": "PressReleaseWriter",
+              "path": "Marketing/Workflows/PressReleaseWriter.md"
+            },
+            {
+              "name": "SeoMetaOptimizer",
+              "path": "Marketing/Workflows/SeoMetaOptimizer.md"
+            },
+            {
+              "name": "SeoTechAudit",
+              "path": "Marketing/Workflows/SeoTechAudit.md"
+            },
+            {
+              "name": "SeoTechAudit_AnalysisModules",
+              "path": "Marketing/Workflows/SeoTechAudit_AnalysisModules.md"
+            },
+            {
+              "name": "SeoTechAudit_ApiCrawling",
+              "path": "Marketing/Workflows/SeoTechAudit_ApiCrawling.md"
+            },
+            {
+              "name": "SeoTechAudit_DataIngestion",
+              "path": "Marketing/Workflows/SeoTechAudit_DataIngestion.md"
+            },
+            {
+              "name": "SeoTechAudit_ImpactScoring",
+              "path": "Marketing/Workflows/SeoTechAudit_ImpactScoring.md"
+            },
+            {
+              "name": "SocialPostWriter",
+              "path": "Marketing/Workflows/SocialPostWriter.md"
+            },
+            {
+              "name": "_PORT_CONVENTION",
+              "path": "Marketing/Workflows/_PORT_CONVENTION.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "Media",
+      "path": "Media",
+      "skills": [
+        {
+          "name": "Art",
+          "path": "Media/Art",
+          "skillMd": "Media/Art/SKILL.md",
+          "description": "Generate illustrations, technical diagrams, mermaid flowcharts, infographics, header images, thumbnails, comics, and AAI pack icons using multiple rendering backends. USE WHEN art, header images, visualizations, mermaid, flowchart, technical diagram, infographic, AAI icon, pack icon, YouTube thumbnails, ad hoc thumbnails, annotated screenshots, aphorisms, comics, comparisons, D3 dashboards, embossed logo wallpaper, essay illustration, frameworks, maps, recipe cards, remove background, stats, taxonomies, timelines, brand wallpaper, visualize, generate image, Midjourney, compose thumbnail, generate prompt.",
+          "triggers": [
+            "art",
+            "header images",
+            "visualizations",
+            "mermaid",
+            "flowchart",
+            "technical diagram",
+            "infographic",
+            "AAI icon",
+            "pack icon",
+            "YouTube thumbnails",
+            "ad hoc thumbnails",
+            "annotated screenshots",
+            "aphorisms",
+            "comics",
+            "comparisons",
+            "D3 dashboards",
+            "embossed logo wallpaper",
+            "essay illustration",
+            "frameworks",
+            "maps",
+            "recipe cards",
+            "remove background",
+            "stats",
+            "taxonomies",
+            "timelines",
+            "brand wallpaper",
+            "visualize",
+            "generate image",
+            "Midjourney",
+            "compose thumbnail",
+            "generate prompt"
+          ],
+          "workflows": [
+            {
+              "name": "AnnotatedScreenshots",
+              "path": "Media/Art/Workflows/AnnotatedScreenshots.md"
+            },
+            {
+              "name": "Aphorisms",
+              "path": "Media/Art/Workflows/Aphorisms.md"
+            },
+            {
+              "name": "Comics",
+              "path": "Media/Art/Workflows/Comics.md"
+            },
+            {
+              "name": "Comparisons",
+              "path": "Media/Art/Workflows/Comparisons.md"
+            },
+            {
+              "name": "CreatePAIPackIcon",
+              "path": "Media/Art/Workflows/CreatePAIPackIcon.md"
+            },
+            {
+              "name": "D3Dashboards",
+              "path": "Media/Art/Workflows/D3Dashboards.md"
+            },
+            {
+              "name": "Essay",
+              "path": "Media/Art/Workflows/Essay.md"
+            },
+            {
+              "name": "Frameworks",
+              "path": "Media/Art/Workflows/Frameworks.md"
+            },
+            {
+              "name": "Maps",
+              "path": "Media/Art/Workflows/Maps.md"
+            },
+            {
+              "name": "Mermaid",
+              "path": "Media/Art/Workflows/Mermaid.md"
+            },
+            {
+              "name": "RecipeCards",
+              "path": "Media/Art/Workflows/RecipeCards.md"
+            },
+            {
+              "name": "RemoveBackground",
+              "path": "Media/Art/Workflows/RemoveBackground.md"
+            },
+            {
+              "name": "Stats",
+              "path": "Media/Art/Workflows/Stats.md"
+            },
+            {
+              "name": "Taxonomies",
+              "path": "Media/Art/Workflows/Taxonomies.md"
+            },
+            {
+              "name": "TechnicalDiagrams",
+              "path": "Media/Art/Workflows/TechnicalDiagrams.md"
+            },
+            {
+              "name": "Timelines",
+              "path": "Media/Art/Workflows/Timelines.md"
+            },
+            {
+              "name": "Visualize",
+              "path": "Media/Art/Workflows/Visualize.md"
+            },
+            {
+              "name": "YouTubeThumbnailChecklist",
+              "path": "Media/Art/Workflows/YouTubeThumbnailChecklist.md"
+            }
+          ],
+          "tools": [
+            "Media/Art/Tools/ComposeThumbnail.ts",
+            "Media/Art/Tools/Generate.ts",
+            "Media/Art/Tools/GenerateMidjourneyImage.ts",
+            "Media/Art/Tools/GeneratePrompt.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Media",
+          "path": "Media",
+          "skillMd": "Media/SKILL.md",
+          "description": "Visual and video content creation — illustrations, diagrams, mermaid flowcharts, infographics, header images, AAI pack icons, thumbnails, comics, and programmatic video via Remotion. USE WHEN art, header images, visualizations, mermaid, diagrams, flowcharts, infographics, pack icons, video, animation, motion graphics, Remotion, video rendering, YouTube thumbnails, comics, comparisons, frameworks, maps, timelines, taxonomies, stats, aphorisms, recipe cards, annotated screenshots, D3 dashboards, embossed logo wallpaper, remove background, essay illustration, technical diagrams, content to animation, generate image, Midjourney.",
+          "triggers": [
+            "art",
+            "header images",
+            "visualizations",
+            "mermaid",
+            "diagrams",
+            "flowcharts",
+            "infographics",
+            "pack icons",
+            "video",
+            "animation",
+            "motion graphics",
+            "Remotion",
+            "video rendering",
+            "YouTube thumbnails",
+            "comics",
+            "comparisons",
+            "frameworks",
+            "maps",
+            "timelines",
+            "taxonomies",
+            "stats",
+            "aphorisms",
+            "recipe cards",
+            "annotated screenshots",
+            "D3 dashboards",
+            "embossed logo wallpaper",
+            "remove background",
+            "essay illustration",
+            "technical diagrams",
+            "content to animation",
+            "generate image",
+            "Midjourney"
+          ],
+          "workflows": [],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Remotion",
+          "path": "Media/Remotion",
+          "skillMd": "Media/Remotion/SKILL.md",
+          "description": "Programmatic video creation with React via Remotion — compositions, animations, motion graphics, rendered to MP4. USE WHEN video, animation, motion graphics, video rendering, React video, intro video, YouTube video, TikTok video, video production, render video, content to animation, animate content, video overlay.",
+          "triggers": [
+            "video",
+            "animation",
+            "motion graphics",
+            "video rendering",
+            "React video",
+            "intro video",
+            "YouTube video",
+            "TikTok video",
+            "video production",
+            "render video",
+            "content to animation",
+            "animate content",
+            "video overlay"
+          ],
+          "workflows": [
+            {
+              "name": "ContentToAnimation",
+              "path": "Media/Remotion/Workflows/ContentToAnimation.md"
+            }
+          ],
+          "tools": [
+            "Media/Remotion/Tools/Render.ts",
+            "Media/Remotion/Tools/Theme.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "PAIUpgrade",
+      "path": "PAIUpgrade",
+      "skills": [
+        {
+          "name": "SAIUpgrade",
+          "path": "PAIUpgrade",
+          "skillMd": "PAIUpgrade/SKILL.md",
+          "description": "Extract system improvements from content AND monitor external sources (Anthropic ecosystem, YouTube). USE WHEN upgrade, improve system, system upgrade, analyze for improvements, check Anthropic, Anthropic changes, new Claude features, check YouTube, new videos, algorithm upgrade, mine reflections, find sources, research upgrade, AAI upgrade.",
+          "triggers": [
+            "upgrade",
+            "improve system",
+            "system upgrade",
+            "analyze for improvements",
+            "check Anthropic",
+            "Anthropic changes",
+            "new Claude features",
+            "check YouTube",
+            "new videos",
+            "algorithm upgrade",
+            "mine reflections",
+            "find sources",
+            "research upgrade",
+            "AAI upgrade"
+          ],
+          "workflows": [
+            {
+              "name": "AlgorithmUpgrade",
+              "path": "PAIUpgrade/Workflows/AlgorithmUpgrade.md"
+            },
+            {
+              "name": "FindSources",
+              "path": "PAIUpgrade/Workflows/FindSources.md"
+            },
+            {
+              "name": "MineReflections",
+              "path": "PAIUpgrade/Workflows/MineReflections.md"
+            },
+            {
+              "name": "ResearchUpgrade",
+              "path": "PAIUpgrade/Workflows/ResearchUpgrade.md"
+            },
+            {
+              "name": "Upgrade",
+              "path": "PAIUpgrade/Workflows/Upgrade.md"
+            }
+          ],
+          "tools": [
+            "PAIUpgrade/Tools/Anthropic.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "Research",
+      "path": "Research",
+      "skills": [
+        {
+          "name": "Research",
+          "path": "Research",
+          "skillMd": "Research/SKILL.md",
+          "description": "Comprehensive research and content extraction — quick/standard/extensive/deep modes with multi-agent parallel research, content retrieval, AI trends analysis, and 242+ Fabric patterns. USE WHEN research, do research, quick research, extensive research, deep investigation, find information, investigate, extract alpha, analyze content, retrieve content, use fabric, AI trends, Claude research, enhance content, extract knowledge, interview research, web scraping, YouTube extraction, standard research, marketing research, voice of customer, review mining, mine reviews, customer language, review analysis, sentiment analysis keywords.",
+          "triggers": [
+            "research",
+            "do research",
+            "quick research",
+            "extensive research",
+            "deep investigation",
+            "find information",
+            "investigate",
+            "extract alpha",
+            "analyze content",
+            "retrieve content",
+            "use fabric",
+            "AI trends",
+            "Claude research",
+            "enhance content",
+            "extract knowledge",
+            "interview research",
+            "web scraping",
+            "YouTube extraction",
+            "standard research",
+            "marketing research",
+            "voice of customer",
+            "review mining",
+            "mine reviews",
+            "customer language",
+            "review analysis",
+            "sentiment analysis keywords"
+          ],
+          "workflows": [
+            {
+              "name": "AnalyzeAiTrends",
+              "path": "Research/Workflows/AnalyzeAiTrends.md"
+            },
+            {
+              "name": "ClaudeResearch",
+              "path": "Research/Workflows/ClaudeResearch.md"
+            },
+            {
+              "name": "DeepInvestigation",
+              "path": "Research/Workflows/DeepInvestigation.md"
+            },
+            {
+              "name": "Enhance",
+              "path": "Research/Workflows/Enhance.md"
+            },
+            {
+              "name": "ExtensiveResearch",
+              "path": "Research/Workflows/ExtensiveResearch.md"
+            },
+            {
+              "name": "ExtractAlpha",
+              "path": "Research/Workflows/ExtractAlpha.md"
+            },
+            {
+              "name": "ExtractKnowledge",
+              "path": "Research/Workflows/ExtractKnowledge.md"
+            },
+            {
+              "name": "Fabric",
+              "path": "Research/Workflows/Fabric.md"
+            },
+            {
+              "name": "InterviewResearch",
+              "path": "Research/Workflows/InterviewResearch.md"
+            },
+            {
+              "name": "MarketingResearch",
+              "path": "Research/Workflows/MarketingResearch.md"
+            },
+            {
+              "name": "PerplexityResearch",
+              "path": "Research/Workflows/PerplexityResearch.md"
+            },
+            {
+              "name": "QuickResearch",
+              "path": "Research/Workflows/QuickResearch.md"
+            },
+            {
+              "name": "Retrieve",
+              "path": "Research/Workflows/Retrieve.md"
+            },
+            {
+              "name": "StandardResearch",
+              "path": "Research/Workflows/StandardResearch.md"
+            },
+            {
+              "name": "WebScraping",
+              "path": "Research/Workflows/WebScraping.md"
+            },
+            {
+              "name": "YoutubeExtraction",
+              "path": "Research/Workflows/YoutubeExtraction.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "Scraping",
+      "path": "Scraping",
+      "skills": [
+        {
+          "name": "Apify",
+          "path": "Scraping/Apify",
+          "skillMd": "Scraping/Apify/SKILL.md",
+          "description": "Social media scraping, business data, e-commerce via Apify actors — with auto-update workflow for actor catalog. USE WHEN Twitter, Instagram, LinkedIn, TikTok, YouTube, Facebook, Google Maps, Amazon scraping, Apify, update Apify actors, social media scraping, lead generation, web scraper.",
+          "triggers": [
+            "Twitter",
+            "Instagram",
+            "LinkedIn",
+            "TikTok",
+            "YouTube",
+            "Facebook",
+            "Google Maps",
+            "Amazon scraping",
+            "Apify",
+            "update Apify actors",
+            "social media scraping",
+            "lead generation",
+            "web scraper"
+          ],
+          "workflows": [
+            {
+              "name": "Update",
+              "path": "Scraping/Apify/Workflows/Update.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "BrightData",
+          "path": "Scraping/BrightData",
+          "skillMd": "Scraping/BrightData/SKILL.md",
+          "description": "4-tier progressive URL scraping and multi-page crawling — WebFetch, then Chrome-header curl, then Playwright browser, then Bright Data proxy. Auto-escalates when lower tiers fail. USE WHEN Bright Data, scrape URL, web scraping, site blocking me, can't access, bot detection, crawl site, crawl pages, spider, CAPTCHA, four tier scrape, progressive scraping, Chrome headers.",
+          "triggers": [
+            "Bright Data",
+            "scrape URL",
+            "web scraping",
+            "site blocking me",
+            "can't access",
+            "bot detection",
+            "crawl site",
+            "crawl pages",
+            "spider",
+            "CAPTCHA",
+            "four tier scrape",
+            "progressive scraping",
+            "Chrome headers"
+          ],
+          "workflows": [
+            {
+              "name": "Crawl",
+              "path": "Scraping/BrightData/Workflows/Crawl.md"
+            },
+            {
+              "name": "FourTierScrape",
+              "path": "Scraping/BrightData/Workflows/FourTierScrape.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Scraping",
+          "path": "Scraping",
+          "skillMd": "Scraping/SKILL.md",
+          "description": "Web scraping via progressive escalation (Bright Data proxy) and social media platform actors (Apify). USE WHEN scraping, Bright Data, proxy, crawl, scrape URL, Twitter scraping, Instagram scraping, LinkedIn scraping, TikTok scraping, YouTube scraping, Facebook scraping, Google Maps, Amazon scraping, Apify, bot detection, CAPTCHA, spider, four tier scrape, site blocking.",
+          "triggers": [
+            "scraping",
+            "Bright Data",
+            "proxy",
+            "crawl",
+            "scrape URL",
+            "Twitter scraping",
+            "Instagram scraping",
+            "LinkedIn scraping",
+            "TikTok scraping",
+            "YouTube scraping",
+            "Facebook scraping",
+            "Google Maps",
+            "Amazon scraping",
+            "Apify",
+            "bot detection",
+            "CAPTCHA",
+            "spider",
+            "four tier scrape",
+            "site blocking"
+          ],
+          "workflows": [],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "Security",
+      "path": "Security",
+      "skills": [
+        {
+          "name": "AnnualReports",
+          "path": "Security/AnnualReports",
+          "skillMd": "Security/AnnualReports/SKILL.md",
+          "description": "Aggregate and analyze annual security reports from major vendors — extract trends, compare threat landscapes year-over-year, produce synthesized threat intelligence summaries. Fetch, list, and update report sources. USE WHEN annual reports, security reports, threat reports, industry reports, vendor reports, threat landscape, fetch report, list sources, update sources.",
+          "triggers": [
+            "annual reports",
+            "security reports",
+            "threat reports",
+            "industry reports",
+            "vendor reports",
+            "threat landscape",
+            "fetch report",
+            "list sources",
+            "update sources"
+          ],
+          "workflows": [],
+          "tools": [
+            "Security/AnnualReports/Tools/FetchReport.ts",
+            "Security/AnnualReports/Tools/ListSources.ts",
+            "Security/AnnualReports/Tools/UpdateSources.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "PromptInjection",
+          "path": "Security/PromptInjection",
+          "skillMd": "Security/PromptInjection/SKILL.md",
+          "description": "Test LLM applications for prompt injection vulnerabilities — jailbreak attempts, system prompt extraction, context manipulation, guardrail bypass techniques, direct injection, indirect injection, multi-stage attacks, and reconnaissance. USE WHEN prompt injection, jailbreak, LLM security, AI security assessment, pentest AI application, test chatbot, guardrail bypass, direct injection, indirect injection, RAG poisoning, multi-stage attack, complete assessment, reconnaissance.",
+          "triggers": [
+            "prompt injection",
+            "jailbreak",
+            "LLM security",
+            "AI security assessment",
+            "pentest AI application",
+            "test chatbot",
+            "guardrail bypass",
+            "direct injection",
+            "indirect injection",
+            "RAG poisoning",
+            "multi-stage attack",
+            "complete assessment",
+            "reconnaissance"
+          ],
+          "workflows": [
+            {
+              "name": "CompleteAssessment",
+              "path": "Security/PromptInjection/Workflows/CompleteAssessment.md"
+            },
+            {
+              "name": "DirectInjectionTesting",
+              "path": "Security/PromptInjection/Workflows/DirectInjectionTesting.md"
+            },
+            {
+              "name": "IndirectInjectionTesting",
+              "path": "Security/PromptInjection/Workflows/IndirectInjectionTesting.md"
+            },
+            {
+              "name": "MultiStageAttacks",
+              "path": "Security/PromptInjection/Workflows/MultiStageAttacks.md"
+            },
+            {
+              "name": "Reconnaissance",
+              "path": "Security/PromptInjection/Workflows/Reconnaissance.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Recon",
+          "path": "Security/Recon",
+          "skillMd": "Security/Recon/SKILL.md",
+          "description": "Network reconnaissance — subdomain enumeration, port scanning, DNS/WHOIS/ASN lookups, endpoint discovery from JS, mass scanning, path discovery, CIDR/netblock analysis. Passive and active modes with corporate structure mapping and bounty program tracking. USE WHEN recon, reconnaissance, bug bounty, bounty programs, attack surface, subdomains, subdomain enumeration, port scan, mass scan, DNS, WHOIS, ASN, CIDR, netblock, IP recon, domain recon, passive recon, corporate structure, endpoint discovery, path discovery, scan results, analyze scan, update tools.",
+          "triggers": [
+            "recon",
+            "reconnaissance",
+            "bug bounty",
+            "bounty programs",
+            "attack surface",
+            "subdomains",
+            "subdomain enumeration",
+            "port scan",
+            "mass scan",
+            "DNS",
+            "WHOIS",
+            "ASN",
+            "CIDR",
+            "netblock",
+            "IP recon",
+            "domain recon",
+            "passive recon",
+            "corporate structure",
+            "endpoint discovery",
+            "path discovery",
+            "scan results",
+            "analyze scan",
+            "update tools"
+          ],
+          "workflows": [
+            {
+              "name": "AnalyzeScanResultsGemini3",
+              "path": "Security/Recon/Workflows/AnalyzeScanResultsGemini3.md"
+            },
+            {
+              "name": "BountyPrograms",
+              "path": "Security/Recon/Workflows/BountyPrograms.md"
+            },
+            {
+              "name": "DomainRecon",
+              "path": "Security/Recon/Workflows/DomainRecon.md"
+            },
+            {
+              "name": "IpRecon",
+              "path": "Security/Recon/Workflows/IpRecon.md"
+            },
+            {
+              "name": "NetblockRecon",
+              "path": "Security/Recon/Workflows/NetblockRecon.md"
+            },
+            {
+              "name": "PassiveRecon",
+              "path": "Security/Recon/Workflows/PassiveRecon.md"
+            },
+            {
+              "name": "UpdateTools",
+              "path": "Security/Recon/Workflows/UpdateTools.md"
+            }
+          ],
+          "tools": [
+            "Security/Recon/Tools/BountyPrograms.ts",
+            "Security/Recon/Tools/CidrUtils.ts",
+            "Security/Recon/Tools/CorporateStructure.ts",
+            "Security/Recon/Tools/DnsUtils.ts",
+            "Security/Recon/Tools/EndpointDiscovery.ts",
+            "Security/Recon/Tools/IpinfoClient.ts",
+            "Security/Recon/Tools/MassScan.ts",
+            "Security/Recon/Tools/PathDiscovery.ts",
+            "Security/Recon/Tools/PortScan.ts",
+            "Security/Recon/Tools/SubdomainEnum.ts",
+            "Security/Recon/Tools/WhoisParser.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "SECUpdates",
+          "path": "Security/SECUpdates",
+          "skillMd": "Security/SECUpdates/SKILL.md",
+          "description": "Security news from tldrsec, no.security, Krebs, Schneier, and other sources. USE WHEN security news, security updates, what's new in security, breaches, security research, sec updates, tldrsec, Krebs, Schneier.",
+          "triggers": [
+            "security news",
+            "security updates",
+            "what's new in security",
+            "breaches",
+            "security research",
+            "sec updates",
+            "tldrsec",
+            "Krebs",
+            "Schneier"
+          ],
+          "workflows": [
+            {
+              "name": "Update",
+              "path": "Security/SECUpdates/Workflows/Update.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Security",
+          "path": "Security",
+          "skillMd": "Security/SKILL.md",
+          "description": "Security assessment and intelligence — network reconnaissance, web app security testing, prompt injection testing, security news monitoring, and annual report analysis. USE WHEN recon, reconnaissance, port scan, subdomain, DNS, WHOIS, ASN, netblock, CIDR, mass scan, path discovery, endpoint discovery, corporate structure, bounty programs, IP recon, domain recon, passive recon, web assessment, OWASP, pentest, threat model, vulnerability analysis, ffuf, Playwright, Gemini analysis, prompt injection, jailbreak, LLM security, guardrail bypass, direct injection, indirect injection, multi-stage attack, security news, sec updates, breaches, tldrsec, security research, annual reports, threat landscape, security trends, vendor reports, fetch report, list sources.",
+          "triggers": [
+            "recon",
+            "reconnaissance",
+            "port scan",
+            "subdomain",
+            "DNS",
+            "WHOIS",
+            "ASN",
+            "netblock",
+            "CIDR",
+            "mass scan",
+            "path discovery",
+            "endpoint discovery",
+            "corporate structure",
+            "bounty programs",
+            "IP recon",
+            "domain recon",
+            "passive recon",
+            "web assessment",
+            "OWASP",
+            "pentest",
+            "threat model",
+            "vulnerability analysis",
+            "ffuf",
+            "Playwright",
+            "Gemini analysis",
+            "prompt injection",
+            "jailbreak",
+            "LLM security",
+            "guardrail bypass",
+            "direct injection",
+            "indirect injection",
+            "multi-stage attack",
+            "security news",
+            "sec updates",
+            "breaches",
+            "tldrsec",
+            "security research",
+            "annual reports",
+            "threat landscape",
+            "security trends",
+            "vendor reports",
+            "fetch report",
+            "list sources"
+          ],
+          "workflows": [],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "WebAssessment",
+          "path": "Security/WebAssessment",
+          "skillMd": "Security/WebAssessment/SKILL.md",
+          "description": "Full web app security assessment — app understanding, threat modeling, OWASP testing, ffuf fuzzing, Playwright automation, AI-assisted vuln analysis. Coordinates with Recon and PromptInjection skills. USE WHEN web assessment, pentest, security testing, vulnerability scan, threat model app, understand application, create threat model, vulnerability analysis, Gemini analysis, ffuf, fuzzing, bug bounty, OSINT, browser automation, Playwright.",
+          "triggers": [
+            "web assessment",
+            "pentest",
+            "security testing",
+            "vulnerability scan",
+            "threat model app",
+            "understand application",
+            "create threat model",
+            "vulnerability analysis",
+            "Gemini analysis",
+            "ffuf",
+            "fuzzing",
+            "bug bounty",
+            "OSINT",
+            "browser automation",
+            "Playwright"
+          ],
+          "workflows": [
+            {
+              "name": "CreateThreatModel",
+              "path": "Security/WebAssessment/Workflows/CreateThreatModel.md"
+            },
+            {
+              "name": "UnderstandApplication",
+              "path": "Security/WebAssessment/Workflows/UnderstandApplication.md"
+            },
+            {
+              "name": "VulnerabilityAnalysisGemini3",
+              "path": "Security/WebAssessment/Workflows/VulnerabilityAnalysisGemini3.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "Thinking",
+      "path": "Thinking",
+      "skills": [
+        {
+          "name": "BeCreative",
+          "path": "Thinking/BeCreative",
+          "skillMd": "Thinking/BeCreative/SKILL.md",
+          "description": "Divergent ideation via Verbalized Sampling + extended thinking (1.6-2.1x diversity). USE WHEN be creative, deep thinking, brainstorm, divergent ideas, creative solutions, maximum creativity, tree of thoughts, idea generation, domain specific creativity, technical creativity, standard creativity.",
+          "triggers": [
+            "be creative",
+            "deep thinking",
+            "brainstorm",
+            "divergent ideas",
+            "creative solutions",
+            "maximum creativity",
+            "tree of thoughts",
+            "idea generation",
+            "domain specific creativity",
+            "technical creativity",
+            "standard creativity"
+          ],
+          "workflows": [
+            {
+              "name": "DomainSpecific",
+              "path": "Thinking/BeCreative/Workflows/DomainSpecific.md"
+            },
+            {
+              "name": "IdeaGeneration",
+              "path": "Thinking/BeCreative/Workflows/IdeaGeneration.md"
+            },
+            {
+              "name": "MaximumCreativity",
+              "path": "Thinking/BeCreative/Workflows/MaximumCreativity.md"
+            },
+            {
+              "name": "StandardCreativity",
+              "path": "Thinking/BeCreative/Workflows/StandardCreativity.md"
+            },
+            {
+              "name": "TechnicalCreativityGemini3",
+              "path": "Thinking/BeCreative/Workflows/TechnicalCreativityGemini3.md"
+            },
+            {
+              "name": "TreeOfThoughts",
+              "path": "Thinking/BeCreative/Workflows/TreeOfThoughts.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Council",
+          "path": "Thinking/Council",
+          "skillMd": "Thinking/Council/SKILL.md",
+          "description": "Multi-agent debate with visible transcripts where agents respond to each other. USE WHEN council, debate, perspectives, weigh options, deliberate, multiple viewpoints. Unlike RedTeam (adversarial), Council is collaborative-adversarial.",
+          "triggers": [
+            "council",
+            "debate",
+            "perspectives",
+            "weigh options",
+            "deliberate",
+            "multiple viewpoints"
+          ],
+          "workflows": [
+            {
+              "name": "Debate",
+              "path": "Thinking/Council/Workflows/Debate.md"
+            },
+            {
+              "name": "Quick",
+              "path": "Thinking/Council/Workflows/Quick.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "FirstPrinciples",
+          "path": "Thinking/FirstPrinciples",
+          "skillMd": "Thinking/FirstPrinciples/SKILL.md",
+          "description": "Decompose to axioms, challenge inherited assumptions, reconstruct from verified truths. USE WHEN first principles, fundamental, root cause, decompose, challenge assumptions, rebuild from scratch.",
+          "triggers": [
+            "first principles",
+            "fundamental",
+            "root cause",
+            "decompose",
+            "challenge assumptions",
+            "rebuild from scratch"
+          ],
+          "workflows": [
+            {
+              "name": "Challenge",
+              "path": "Thinking/FirstPrinciples/Workflows/Challenge.md"
+            },
+            {
+              "name": "Deconstruct",
+              "path": "Thinking/FirstPrinciples/Workflows/Deconstruct.md"
+            },
+            {
+              "name": "Reconstruct",
+              "path": "Thinking/FirstPrinciples/Workflows/Reconstruct.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "IterativeDepth",
+          "path": "Thinking/IterativeDepth",
+          "skillMd": "Thinking/IterativeDepth/SKILL.md",
+          "description": "2-8 scientific lens passes to surface hidden requirements single-pass analysis misses. USE WHEN iterative depth, deep exploration, multi-angle analysis, multiple perspectives, examine from angles, surface hidden requirements.",
+          "triggers": [
+            "iterative depth",
+            "deep exploration",
+            "multi-angle analysis",
+            "multiple perspectives",
+            "examine from angles",
+            "surface hidden requirements"
+          ],
+          "workflows": [
+            {
+              "name": "Explore",
+              "path": "Thinking/IterativeDepth/Workflows/Explore.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "RedTeam",
+          "path": "Thinking/RedTeam",
+          "skillMd": "Thinking/RedTeam/SKILL.md",
+          "description": "32 adversarial agents to destroy weak arguments and find fatal flaws — parallel analysis and adversarial validation. USE WHEN red team, attack idea, counterarguments, critique, stress test, poke holes, devil's advocate, find weaknesses, break this, parallel analysis, adversarial validation.",
+          "triggers": [
+            "red team",
+            "attack idea",
+            "counterarguments",
+            "critique",
+            "stress test",
+            "poke holes",
+            "devil's advocate",
+            "find weaknesses",
+            "break this",
+            "parallel analysis",
+            "adversarial validation"
+          ],
+          "workflows": [
+            {
+              "name": "AdversarialValidation",
+              "path": "Thinking/RedTeam/Workflows/AdversarialValidation.md"
+            },
+            {
+              "name": "ParallelAnalysis",
+              "path": "Thinking/RedTeam/Workflows/ParallelAnalysis.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Science",
+          "path": "Thinking/Science",
+          "skillMd": "Thinking/Science/SKILL.md",
+          "description": "Hypothesis-test-analyze cycles for systematic problem-solving — the meta-skill governing all others. Includes define goal, generate hypotheses, design experiment, measure results, analyze results, iterate, full cycle, quick diagnosis, and structured investigation. USE WHEN think about, figure out, try approaches, experiment with, iterate on, improve, optimize, define goal, generate hypotheses, design experiment, measure results, analyze results, full cycle, quick diagnosis, structured investigation, science, hypothesis.",
+          "triggers": [
+            "think about",
+            "figure out",
+            "try approaches",
+            "experiment with",
+            "iterate on",
+            "improve",
+            "optimize",
+            "define goal",
+            "generate hypotheses",
+            "design experiment",
+            "measure results",
+            "analyze results",
+            "full cycle",
+            "quick diagnosis",
+            "structured investigation",
+            "science",
+            "hypothesis"
+          ],
+          "workflows": [
+            {
+              "name": "AnalyzeResults",
+              "path": "Thinking/Science/Workflows/AnalyzeResults.md"
+            },
+            {
+              "name": "DefineGoal",
+              "path": "Thinking/Science/Workflows/DefineGoal.md"
+            },
+            {
+              "name": "DesignExperiment",
+              "path": "Thinking/Science/Workflows/DesignExperiment.md"
+            },
+            {
+              "name": "FullCycle",
+              "path": "Thinking/Science/Workflows/FullCycle.md"
+            },
+            {
+              "name": "GenerateHypotheses",
+              "path": "Thinking/Science/Workflows/GenerateHypotheses.md"
+            },
+            {
+              "name": "Iterate",
+              "path": "Thinking/Science/Workflows/Iterate.md"
+            },
+            {
+              "name": "MeasureResults",
+              "path": "Thinking/Science/Workflows/MeasureResults.md"
+            },
+            {
+              "name": "QuickDiagnosis",
+              "path": "Thinking/Science/Workflows/QuickDiagnosis.md"
+            },
+            {
+              "name": "StructuredInvestigation",
+              "path": "Thinking/Science/Workflows/StructuredInvestigation.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Thinking",
+          "path": "Thinking",
+          "skillMd": "Thinking/SKILL.md",
+          "description": "Multi-mode analytical and creative thinking — first principles decomposition, iterative depth analysis, creative brainstorming, multi-agent council debates, adversarial red teaming, world threat modeling, and scientific hypothesis testing. USE WHEN first principles, decompose, deconstruct, reconstruct, challenge assumptions, iterative depth, multi-angle, deep exploration, be creative, brainstorm, divergent ideas, tree of thoughts, maximum creativity, technical creativity, idea generation, domain specific, council, debate, perspectives, quick consensus, red team, critique, stress test, adversarial validation, parallel analysis, devil's advocate, threat model, world model, future analysis, test idea, test investment, update models, view models, time horizon, think about, figure out, experiment, iterate, science, hypothesis, define goal, design experiment, quick diagnosis, structured investigation, full cycle.",
+          "triggers": [
+            "first principles",
+            "decompose",
+            "deconstruct",
+            "reconstruct",
+            "challenge assumptions",
+            "iterative depth",
+            "multi-angle",
+            "deep exploration",
+            "be creative",
+            "brainstorm",
+            "divergent ideas",
+            "tree of thoughts",
+            "maximum creativity",
+            "technical creativity",
+            "idea generation",
+            "domain specific",
+            "council",
+            "debate",
+            "perspectives",
+            "quick consensus",
+            "red team",
+            "critique",
+            "stress test",
+            "adversarial validation",
+            "parallel analysis",
+            "devil's advocate",
+            "threat model",
+            "world model",
+            "future analysis",
+            "test idea",
+            "test investment",
+            "update models",
+            "view models",
+            "time horizon",
+            "think about",
+            "figure out",
+            "experiment",
+            "iterate",
+            "science",
+            "hypothesis",
+            "define goal",
+            "design experiment",
+            "quick diagnosis",
+            "structured investigation",
+            "full cycle"
+          ],
+          "workflows": [],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "WorldThreatModelHarness",
+          "path": "Thinking/WorldThreatModelHarness",
+          "skillMd": "Thinking/WorldThreatModelHarness/SKILL.md",
+          "description": "Stress-test ideas, strategies, and investments across 11 time horizons (6mo-50yr). Update and view world models. USE WHEN threat model, world model, test idea, test strategy, future analysis, test investment, test against future, stress test idea, time horizon analysis, update models, view models, refresh models, model status.",
+          "triggers": [
+            "threat model",
+            "world model",
+            "test idea",
+            "test strategy",
+            "future analysis",
+            "test investment",
+            "test against future",
+            "stress test idea",
+            "time horizon analysis",
+            "update models",
+            "view models",
+            "refresh models",
+            "model status"
+          ],
+          "workflows": [
+            {
+              "name": "TestIdea",
+              "path": "Thinking/WorldThreatModelHarness/Workflows/TestIdea.md"
+            },
+            {
+              "name": "UpdateModels",
+              "path": "Thinking/WorldThreatModelHarness/Workflows/UpdateModels.md"
+            },
+            {
+              "name": "ViewModels",
+              "path": "Thinking/WorldThreatModelHarness/Workflows/ViewModels.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "USMetrics",
+      "path": "USMetrics",
+      "skills": [
+        {
+          "name": "USMetrics",
+          "path": "USMetrics",
+          "skillMd": "USMetrics/SKILL.md",
+          "description": "68 US economic indicators from FRED, EIA, Treasury, BLS, Census APIs with trend analysis and cross-metric correlation. Updates Substrate dataset, produces economic overviews. USE WHEN GDP, inflation, unemployment, economic metrics, gas prices, how is the economy, update data, refresh data, get current state, economic overview, FRED, fetch FRED series, generate analysis, update substrate metrics, US metrics, economic trends.",
+          "triggers": [
+            "GDP",
+            "inflation",
+            "unemployment",
+            "economic metrics",
+            "gas prices",
+            "how is the economy",
+            "update data",
+            "refresh data",
+            "get current state",
+            "economic overview",
+            "FRED",
+            "fetch FRED series",
+            "generate analysis",
+            "update substrate metrics",
+            "US metrics",
+            "economic trends"
+          ],
+          "workflows": [
+            {
+              "name": "GetCurrentState",
+              "path": "USMetrics/Workflows/GetCurrentState.md"
+            },
+            {
+              "name": "UpdateData",
+              "path": "USMetrics/Workflows/UpdateData.md"
+            }
+          ],
+          "tools": [
+            "USMetrics/Tools/FetchFredSeries.ts",
+            "USMetrics/Tools/GenerateAnalysis.ts",
+            "USMetrics/Tools/UpdateSubstrateMetrics.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    },
+    {
+      "name": "Utilities",
+      "path": "Utilities",
+      "skills": [
+        {
+          "name": "Aphorisms",
+          "path": "Utilities/Aphorisms",
+          "skillMd": "Utilities/Aphorisms/SKILL.md",
+          "description": "CRUD on {PRINCIPAL.NAME}'s curated aphorism collection — search by theme, add with metadata, research thinkers, match quotes to newsletter content. USE WHEN aphorism, quote, saying, find quote for newsletter, research thinker quotes, add aphorism, search aphorisms, find aphorism.",
+          "triggers": [
+            "aphorism",
+            "quote",
+            "saying",
+            "find quote for newsletter",
+            "research thinker quotes",
+            "add aphorism",
+            "search aphorisms",
+            "find aphorism"
+          ],
+          "workflows": [
+            {
+              "name": "AddAphorism",
+              "path": "Utilities/Aphorisms/Workflows/AddAphorism.md"
+            },
+            {
+              "name": "FindAphorism",
+              "path": "Utilities/Aphorisms/Workflows/FindAphorism.md"
+            },
+            {
+              "name": "ResearchThinker",
+              "path": "Utilities/Aphorisms/Workflows/ResearchThinker.md"
+            },
+            {
+              "name": "SearchAphorisms",
+              "path": "Utilities/Aphorisms/Workflows/SearchAphorisms.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": [
+            "Utilities/Aphorisms/Database/aphorisms.md"
+          ]
+        },
+        {
+          "name": "AudioEditor",
+          "path": "Utilities/AudioEditor",
+          "skillMd": "Utilities/AudioEditor/SKILL.md",
+          "description": "AI-powered audio/video editing — transcription, intelligent cut detection, automated editing with crossfades, and optional cloud polish. USE WHEN clean audio, edit audio, remove filler words, clean podcast, remove ums, fix audio, cut dead air, polish audio, clean recording, transcribe and edit.",
+          "triggers": [
+            "clean audio",
+            "edit audio",
+            "remove filler words",
+            "clean podcast",
+            "remove ums",
+            "fix audio",
+            "cut dead air",
+            "polish audio",
+            "clean recording",
+            "transcribe and edit"
+          ],
+          "workflows": [
+            {
+              "name": "Clean",
+              "path": "Utilities/AudioEditor/Workflows/Clean.md"
+            }
+          ],
+          "tools": [
+            "Utilities/AudioEditor/Tools/Analyze.ts",
+            "Utilities/AudioEditor/Tools/Edit.ts",
+            "Utilities/AudioEditor/Tools/Pipeline.ts",
+            "Utilities/AudioEditor/Tools/Polish.ts",
+            "Utilities/AudioEditor/Tools/Transcribe.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Browser",
+          "path": "Utilities/Browser",
+          "skillMd": "Utilities/Browser/SKILL.md",
+          "description": "Visual verification and browser automation via Playwright. Headless or headed Chrome. USE WHEN browser, screenshot, debug web, verify UI, troubleshoot frontend, automate browser, browse website, review stories, run stories, recipe, web automation.",
+          "triggers": [
+            "browser",
+            "screenshot",
+            "debug web",
+            "verify UI",
+            "troubleshoot frontend",
+            "automate browser",
+            "browse website",
+            "review stories",
+            "run stories",
+            "recipe",
+            "web automation"
+          ],
+          "workflows": [
+            {
+              "name": "Automate",
+              "path": "Utilities/Browser/Workflows/Automate.md"
+            },
+            {
+              "name": "ReviewStories",
+              "path": "Utilities/Browser/Workflows/ReviewStories.md"
+            },
+            {
+              "name": "Update",
+              "path": "Utilities/Browser/Workflows/Update.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Cloudflare",
+          "path": "Utilities/Cloudflare",
+          "skillMd": "Utilities/Cloudflare/SKILL.md",
+          "description": "Deploy and manage Cloudflare Workers, Pages, and services via Code Mode MCP (API queries) + wrangler (deploys). OAuth auth for wrangler (tokens lack Pages perms). USE WHEN Cloudflare, worker, deploy, Pages, MCP server, wrangler, DNS, KV, R2, D1, Vectorize.",
+          "triggers": [
+            "Cloudflare",
+            "worker",
+            "deploy",
+            "Pages",
+            "MCP server",
+            "wrangler",
+            "DNS",
+            "KV",
+            "R2",
+            "D1",
+            "Vectorize"
+          ],
+          "workflows": [
+            {
+              "name": "Create",
+              "path": "Utilities/Cloudflare/Workflows/Create.md"
+            },
+            {
+              "name": "Query",
+              "path": "Utilities/Cloudflare/Workflows/Query.md"
+            },
+            {
+              "name": "Troubleshoot",
+              "path": "Utilities/Cloudflare/Workflows/Troubleshoot.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "CreateCLI",
+          "path": "Utilities/CreateCLI",
+          "skillMd": "Utilities/CreateCLI/SKILL.md",
+          "description": "Generate production-ready TypeScript CLIs with 3-tier template system (simple argv, yargs, oclif), type safety, error handling, and documentation. USE WHEN create CLI, build CLI, command-line tool, wrap API, add command, upgrade tier, TypeScript CLI.",
+          "triggers": [
+            "create CLI",
+            "build CLI",
+            "command-line tool",
+            "wrap API",
+            "add command",
+            "upgrade tier",
+            "TypeScript CLI"
+          ],
+          "workflows": [
+            {
+              "name": "AddCommand",
+              "path": "Utilities/CreateCLI/Workflows/AddCommand.md"
+            },
+            {
+              "name": "CreateCli",
+              "path": "Utilities/CreateCLI/Workflows/CreateCli.md"
+            },
+            {
+              "name": "UpgradeTier",
+              "path": "Utilities/CreateCLI/Workflows/UpgradeTier.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "CreateSkill",
+          "path": "Utilities/CreateSkill",
+          "skillMd": "Utilities/CreateSkill/SKILL.md",
+          "description": "Scaffold new AAI skills with proper YAML front matter, TitleCase naming, flat folder structure (SKILL.md + Workflows/ + Tools/), and validation against SkillSystem.md. USE WHEN create skill, new skill, skill structure, canonicalize, validate skill, update skill, fix skill structure, scaffold skill.",
+          "triggers": [
+            "create skill",
+            "new skill",
+            "skill structure",
+            "canonicalize",
+            "validate skill",
+            "update skill",
+            "fix skill structure",
+            "scaffold skill"
+          ],
+          "workflows": [
+            {
+              "name": "CanonicalizeSkill",
+              "path": "Utilities/CreateSkill/Workflows/CanonicalizeSkill.md"
+            },
+            {
+              "name": "CreateSkill",
+              "path": "Utilities/CreateSkill/Workflows/CreateSkill.md"
+            },
+            {
+              "name": "UpdateSkill",
+              "path": "Utilities/CreateSkill/Workflows/UpdateSkill.md"
+            },
+            {
+              "name": "ValidateSkill",
+              "path": "Utilities/CreateSkill/Workflows/ValidateSkill.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Delegation",
+          "path": "Utilities/Delegation",
+          "skillMd": "Utilities/Delegation/SKILL.md",
+          "description": "Parallelize work via background/foreground agents, built-in types, custom agents, or agent teams/swarms. USE WHEN 3+ independent workstreams, parallel execution, agent specialization, Extended+ effort, agent team, swarm, create an agent team.",
+          "triggers": [
+            "3+ independent workstreams",
+            "parallel execution",
+            "agent specialization",
+            "Extended+ effort",
+            "agent team",
+            "swarm",
+            "create an agent team"
+          ],
+          "workflows": [],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Documents",
+          "path": "Utilities/Documents",
+          "skillMd": "Utilities/Documents/SKILL.md",
+          "description": "Read, write, convert, and analyze documents — routes to PDF, DOCX, XLSX, PPTX sub-skills for creation, editing, extraction, and format conversion. USE WHEN document, process file, create document, convert format, extract text, PDF, DOCX, XLSX, PPTX, Word, Excel, spreadsheet, PowerPoint, presentation, slides, consulting report, large PDF, merge PDF, fill form, tracked changes, redlining.",
+          "triggers": [
+            "document",
+            "process file",
+            "create document",
+            "convert format",
+            "extract text",
+            "PDF",
+            "DOCX",
+            "XLSX",
+            "PPTX",
+            "Word",
+            "Excel",
+            "spreadsheet",
+            "PowerPoint",
+            "presentation",
+            "slides",
+            "consulting report",
+            "large PDF",
+            "merge PDF",
+            "fill form",
+            "tracked changes",
+            "redlining"
+          ],
+          "workflows": [
+            {
+              "name": "ConsultingReport",
+              "path": "Utilities/Documents/Workflows/ConsultingReport.md"
+            },
+            {
+              "name": "ProcessLargePdfGemini3",
+              "path": "Utilities/Documents/Workflows/ProcessLargePdfGemini3.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Evals",
+          "path": "Utilities/Evals",
+          "skillMd": "Utilities/Evals/SKILL.md",
+          "description": "Objective eval metrics via code/model/human graders with pass@k/pass^k scoring. USE WHEN eval, evaluate, test agent, benchmark, verify behavior, regression test, capability test, run eval, compare models, compare prompts, create judge, create use case, view results, failure to task, suite manager, transcript capture, trial runner.",
+          "triggers": [
+            "eval",
+            "evaluate",
+            "test agent",
+            "benchmark",
+            "verify behavior",
+            "regression test",
+            "capability test",
+            "run eval",
+            "compare models",
+            "compare prompts",
+            "create judge",
+            "create use case",
+            "view results",
+            "failure to task",
+            "suite manager",
+            "transcript capture",
+            "trial runner"
+          ],
+          "workflows": [
+            {
+              "name": "CompareModels",
+              "path": "Utilities/Evals/Workflows/CompareModels.md"
+            },
+            {
+              "name": "ComparePrompts",
+              "path": "Utilities/Evals/Workflows/ComparePrompts.md"
+            },
+            {
+              "name": "CreateJudge",
+              "path": "Utilities/Evals/Workflows/CreateJudge.md"
+            },
+            {
+              "name": "CreateUseCase",
+              "path": "Utilities/Evals/Workflows/CreateUseCase.md"
+            },
+            {
+              "name": "RunEval",
+              "path": "Utilities/Evals/Workflows/RunEval.md"
+            },
+            {
+              "name": "ViewResults",
+              "path": "Utilities/Evals/Workflows/ViewResults.md"
+            }
+          ],
+          "tools": [
+            "Utilities/Evals/Tools/AlgorithmBridge.ts",
+            "Utilities/Evals/Tools/FailureToTask.ts",
+            "Utilities/Evals/Tools/SuiteManager.ts",
+            "Utilities/Evals/Tools/TranscriptCapture.ts",
+            "Utilities/Evals/Tools/TrialRunner.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Fabric",
+          "path": "Utilities/Fabric",
+          "skillMd": "Utilities/Fabric/SKILL.md",
+          "description": "240+ specialized prompt patterns for content analysis, extraction, and transformation — run patterns, sync from repo, create threat models, summarize. USE WHEN fabric, fabric pattern, run fabric, update patterns, sync fabric, summarize with fabric, create threat model, analyze with fabric.",
+          "triggers": [
+            "fabric",
+            "fabric pattern",
+            "run fabric",
+            "update patterns",
+            "sync fabric",
+            "summarize with fabric",
+            "create threat model",
+            "analyze with fabric"
+          ],
+          "workflows": [
+            {
+              "name": "ExecutePattern",
+              "path": "Utilities/Fabric/Workflows/ExecutePattern.md"
+            },
+            {
+              "name": "UpdatePatterns",
+              "path": "Utilities/Fabric/Workflows/UpdatePatterns.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [
+            "Utilities/Fabric/Patterns/agility_story",
+            "Utilities/Fabric/Patterns/ai",
+            "Utilities/Fabric/Patterns/analyze_answers",
+            "Utilities/Fabric/Patterns/analyze_bill",
+            "Utilities/Fabric/Patterns/analyze_bill_short",
+            "Utilities/Fabric/Patterns/analyze_candidates",
+            "Utilities/Fabric/Patterns/analyze_cfp_submission",
+            "Utilities/Fabric/Patterns/analyze_claims",
+            "Utilities/Fabric/Patterns/analyze_comments",
+            "Utilities/Fabric/Patterns/analyze_debate",
+            "Utilities/Fabric/Patterns/analyze_email_headers",
+            "Utilities/Fabric/Patterns/analyze_incident",
+            "Utilities/Fabric/Patterns/analyze_interviewer_techniques",
+            "Utilities/Fabric/Patterns/analyze_logs",
+            "Utilities/Fabric/Patterns/analyze_malware",
+            "Utilities/Fabric/Patterns/analyze_military_strategy",
+            "Utilities/Fabric/Patterns/analyze_mistakes",
+            "Utilities/Fabric/Patterns/analyze_paper",
+            "Utilities/Fabric/Patterns/analyze_paper_simple",
+            "Utilities/Fabric/Patterns/analyze_patent",
+            "Utilities/Fabric/Patterns/analyze_personality",
+            "Utilities/Fabric/Patterns/analyze_presentation",
+            "Utilities/Fabric/Patterns/analyze_product_feedback",
+            "Utilities/Fabric/Patterns/analyze_proposition",
+            "Utilities/Fabric/Patterns/analyze_prose",
+            "Utilities/Fabric/Patterns/analyze_prose_json",
+            "Utilities/Fabric/Patterns/analyze_prose_pinker",
+            "Utilities/Fabric/Patterns/analyze_risk",
+            "Utilities/Fabric/Patterns/analyze_sales_call",
+            "Utilities/Fabric/Patterns/analyze_spiritual_text",
+            "Utilities/Fabric/Patterns/analyze_tech_impact",
+            "Utilities/Fabric/Patterns/analyze_terraform_plan",
+            "Utilities/Fabric/Patterns/analyze_threat_report",
+            "Utilities/Fabric/Patterns/analyze_threat_report_cmds",
+            "Utilities/Fabric/Patterns/analyze_threat_report_trends",
+            "Utilities/Fabric/Patterns/answer_interview_question",
+            "Utilities/Fabric/Patterns/arbiter-create-ideal",
+            "Utilities/Fabric/Patterns/arbiter-evaluate-quality",
+            "Utilities/Fabric/Patterns/arbiter-general-evaluator",
+            "Utilities/Fabric/Patterns/arbiter-run-prompt",
+            "Utilities/Fabric/Patterns/ask_secure_by_design_questions",
+            "Utilities/Fabric/Patterns/ask_uncle_duke",
+            "Utilities/Fabric/Patterns/capture_thinkers_work",
+            "Utilities/Fabric/Patterns/check_agreement",
+            "Utilities/Fabric/Patterns/clean_text",
+            "Utilities/Fabric/Patterns/coding_master",
+            "Utilities/Fabric/Patterns/compare_and_contrast",
+            "Utilities/Fabric/Patterns/convert_to_markdown",
+            "Utilities/Fabric/Patterns/create_5_sentence_summary",
+            "Utilities/Fabric/Patterns/create_academic_paper",
+            "Utilities/Fabric/Patterns/create_ai_jobs_analysis",
+            "Utilities/Fabric/Patterns/create_aphorisms",
+            "Utilities/Fabric/Patterns/create_art_prompt",
+            "Utilities/Fabric/Patterns/create_better_frame",
+            "Utilities/Fabric/Patterns/create_clint_summary",
+            "Utilities/Fabric/Patterns/create_coding_feature",
+            "Utilities/Fabric/Patterns/create_coding_project",
+            "Utilities/Fabric/Patterns/create_command",
+            "Utilities/Fabric/Patterns/create_conceptmap",
+            "Utilities/Fabric/Patterns/create_cyber_summary",
+            "Utilities/Fabric/Patterns/create_design_document",
+            "Utilities/Fabric/Patterns/create_diy",
+            "Utilities/Fabric/Patterns/create_excalidraw_visualization",
+            "Utilities/Fabric/Patterns/create_flash_cards",
+            "Utilities/Fabric/Patterns/create_formal_email",
+            "Utilities/Fabric/Patterns/create_git_diff_commit",
+            "Utilities/Fabric/Patterns/create_graph_from_input",
+            "Utilities/Fabric/Patterns/create_hormozi_offer",
+            "Utilities/Fabric/Patterns/create_idea_compass",
+            "Utilities/Fabric/Patterns/create_investigation_visualization",
+            "Utilities/Fabric/Patterns/create_keynote",
+            "Utilities/Fabric/Patterns/create_loe_document",
+            "Utilities/Fabric/Patterns/create_logo",
+            "Utilities/Fabric/Patterns/create_markmap_visualization",
+            "Utilities/Fabric/Patterns/create_mermaid_visualization",
+            "Utilities/Fabric/Patterns/create_mermaid_visualization_for_github",
+            "Utilities/Fabric/Patterns/create_micro_summary",
+            "Utilities/Fabric/Patterns/create_mnemonic_phrases",
+            "Utilities/Fabric/Patterns/create_network_threat_landscape",
+            "Utilities/Fabric/Patterns/create_npc",
+            "Utilities/Fabric/Patterns/create_pattern",
+            "Utilities/Fabric/Patterns/create_podcast_image",
+            "Utilities/Fabric/Patterns/create_prd",
+            "Utilities/Fabric/Patterns/create_prediction_block",
+            "Utilities/Fabric/Patterns/create_quiz",
+            "Utilities/Fabric/Patterns/create_reading_plan",
+            "Utilities/Fabric/Patterns/create_recursive_outline",
+            "Utilities/Fabric/Patterns/create_report_finding",
+            "Utilities/Fabric/Patterns/create_rpg_summary",
+            "Utilities/Fabric/Patterns/create_security_update",
+            "Utilities/Fabric/Patterns/create_show_intro",
+            "Utilities/Fabric/Patterns/create_sigma_rules",
+            "Utilities/Fabric/Patterns/create_story_about_people_interaction",
+            "Utilities/Fabric/Patterns/create_story_about_person",
+            "Utilities/Fabric/Patterns/create_stride_threat_model",
+            "Utilities/Fabric/Patterns/create_summary",
+            "Utilities/Fabric/Patterns/create_tags",
+            "Utilities/Fabric/Patterns/create_threat_model",
+            "Utilities/Fabric/Patterns/create_threat_scenarios",
+            "Utilities/Fabric/Patterns/create_ttrc_graph",
+            "Utilities/Fabric/Patterns/create_ttrc_narrative",
+            "Utilities/Fabric/Patterns/create_upgrade_pack",
+            "Utilities/Fabric/Patterns/create_user_story",
+            "Utilities/Fabric/Patterns/create_video_chapters",
+            "Utilities/Fabric/Patterns/create_visualization",
+            "Utilities/Fabric/Patterns/dialog_with_socrates",
+            "Utilities/Fabric/Patterns/enrich_blog_post",
+            "Utilities/Fabric/Patterns/explain_code",
+            "Utilities/Fabric/Patterns/explain_docs",
+            "Utilities/Fabric/Patterns/explain_math",
+            "Utilities/Fabric/Patterns/explain_project",
+            "Utilities/Fabric/Patterns/explain_terms",
+            "Utilities/Fabric/Patterns/export_data_as_csv",
+            "Utilities/Fabric/Patterns/extract_algorithm_update_recommendations",
+            "Utilities/Fabric/Patterns/extract_alpha",
+            "Utilities/Fabric/Patterns/extract_article_wisdom",
+            "Utilities/Fabric/Patterns/extract_book_ideas",
+            "Utilities/Fabric/Patterns/extract_book_recommendations",
+            "Utilities/Fabric/Patterns/extract_business_ideas",
+            "Utilities/Fabric/Patterns/extract_characters",
+            "Utilities/Fabric/Patterns/extract_controversial_ideas",
+            "Utilities/Fabric/Patterns/extract_core_message",
+            "Utilities/Fabric/Patterns/extract_ctf_writeup",
+            "Utilities/Fabric/Patterns/extract_domains",
+            "Utilities/Fabric/Patterns/extract_extraordinary_claims",
+            "Utilities/Fabric/Patterns/extract_ideas",
+            "Utilities/Fabric/Patterns/extract_insights",
+            "Utilities/Fabric/Patterns/extract_instructions",
+            "Utilities/Fabric/Patterns/extract_jokes",
+            "Utilities/Fabric/Patterns/extract_latest_video",
+            "Utilities/Fabric/Patterns/extract_main_activities",
+            "Utilities/Fabric/Patterns/extract_main_idea",
+            "Utilities/Fabric/Patterns/extract_mcp_servers",
+            "Utilities/Fabric/Patterns/extract_most_redeeming_thing",
+            "Utilities/Fabric/Patterns/extract_patterns",
+            "Utilities/Fabric/Patterns/extract_poc",
+            "Utilities/Fabric/Patterns/extract_predictions",
+            "Utilities/Fabric/Patterns/extract_primary_problem",
+            "Utilities/Fabric/Patterns/extract_primary_solution",
+            "Utilities/Fabric/Patterns/extract_product_features",
+            "Utilities/Fabric/Patterns/extract_questions",
+            "Utilities/Fabric/Patterns/extract_recipe",
+            "Utilities/Fabric/Patterns/extract_recommendations",
+            "Utilities/Fabric/Patterns/extract_references",
+            "Utilities/Fabric/Patterns/extract_skills",
+            "Utilities/Fabric/Patterns/extract_song_meaning",
+            "Utilities/Fabric/Patterns/extract_sponsors",
+            "Utilities/Fabric/Patterns/extract_videoid",
+            "Utilities/Fabric/Patterns/extract_wisdom",
+            "Utilities/Fabric/Patterns/extract_wisdom_agents",
+            "Utilities/Fabric/Patterns/extract_wisdom_nometa",
+            "Utilities/Fabric/Patterns/find_female_life_partner",
+            "Utilities/Fabric/Patterns/find_hidden_message",
+            "Utilities/Fabric/Patterns/find_logical_fallacies",
+            "Utilities/Fabric/Patterns/fix_typos",
+            "Utilities/Fabric/Patterns/generate_code_rules",
+            "Utilities/Fabric/Patterns/get_wow_per_minute",
+            "Utilities/Fabric/Patterns/get_youtube_rss",
+            "Utilities/Fabric/Patterns/heal_person",
+            "Utilities/Fabric/Patterns/humanize",
+            "Utilities/Fabric/Patterns/identify_dsrp_distinctions",
+            "Utilities/Fabric/Patterns/identify_dsrp_perspectives",
+            "Utilities/Fabric/Patterns/identify_dsrp_relationships",
+            "Utilities/Fabric/Patterns/identify_dsrp_systems",
+            "Utilities/Fabric/Patterns/identify_job_stories",
+            "Utilities/Fabric/Patterns/improve_academic_writing",
+            "Utilities/Fabric/Patterns/improve_prompt",
+            "Utilities/Fabric/Patterns/improve_report_finding",
+            "Utilities/Fabric/Patterns/improve_writing",
+            "Utilities/Fabric/Patterns/judge_output",
+            "Utilities/Fabric/Patterns/label_and_rate",
+            "Utilities/Fabric/Patterns/md_callout",
+            "Utilities/Fabric/Patterns/model_as_sherlock_freud",
+            "Utilities/Fabric/Patterns/official_pattern_template",
+            "Utilities/Fabric/Patterns/predict_person_actions",
+            "Utilities/Fabric/Patterns/prepare_7s_strategy",
+            "Utilities/Fabric/Patterns/provide_guidance",
+            "Utilities/Fabric/Patterns/rate_ai_response",
+            "Utilities/Fabric/Patterns/rate_ai_result",
+            "Utilities/Fabric/Patterns/rate_content",
+            "Utilities/Fabric/Patterns/rate_value",
+            "Utilities/Fabric/Patterns/raw_query",
+            "Utilities/Fabric/Patterns/raycast",
+            "Utilities/Fabric/Patterns/recommend_artists",
+            "Utilities/Fabric/Patterns/recommend_pipeline_upgrades",
+            "Utilities/Fabric/Patterns/recommend_yoga_practice",
+            "Utilities/Fabric/Patterns/refine_design_document",
+            "Utilities/Fabric/Patterns/review_code",
+            "Utilities/Fabric/Patterns/review_design",
+            "Utilities/Fabric/Patterns/show_fabric_options_markmap",
+            "Utilities/Fabric/Patterns/solve_with_cot",
+            "Utilities/Fabric/Patterns/suggest_pattern",
+            "Utilities/Fabric/Patterns/summarize",
+            "Utilities/Fabric/Patterns/summarize_board_meeting",
+            "Utilities/Fabric/Patterns/summarize_debate",
+            "Utilities/Fabric/Patterns/summarize_git_changes",
+            "Utilities/Fabric/Patterns/summarize_git_diff",
+            "Utilities/Fabric/Patterns/summarize_lecture",
+            "Utilities/Fabric/Patterns/summarize_legislation",
+            "Utilities/Fabric/Patterns/summarize_meeting",
+            "Utilities/Fabric/Patterns/summarize_micro",
+            "Utilities/Fabric/Patterns/summarize_paper",
+            "Utilities/Fabric/Patterns/summarize_prompt",
+            "Utilities/Fabric/Patterns/summarize_pull-requests",
+            "Utilities/Fabric/Patterns/summarize_rpg_session",
+            "Utilities/Fabric/Patterns/t_analyze_challenge_handling",
+            "Utilities/Fabric/Patterns/t_check_dunning_kruger",
+            "Utilities/Fabric/Patterns/t_check_metrics",
+            "Utilities/Fabric/Patterns/t_create_h3_career",
+            "Utilities/Fabric/Patterns/t_create_opening_sentences",
+            "Utilities/Fabric/Patterns/t_describe_life_outlook",
+            "Utilities/Fabric/Patterns/t_extract_intro_sentences",
+            "Utilities/Fabric/Patterns/t_extract_panel_topics",
+            "Utilities/Fabric/Patterns/t_find_blindspots",
+            "Utilities/Fabric/Patterns/t_find_negative_thinking",
+            "Utilities/Fabric/Patterns/t_find_neglected_goals",
+            "Utilities/Fabric/Patterns/t_give_encouragement",
+            "Utilities/Fabric/Patterns/t_red_team_thinking",
+            "Utilities/Fabric/Patterns/t_threat_model_plans",
+            "Utilities/Fabric/Patterns/t_visualize_mission_goals_projects",
+            "Utilities/Fabric/Patterns/t_year_in_review",
+            "Utilities/Fabric/Patterns/threshold",
+            "Utilities/Fabric/Patterns/to_flashcards",
+            "Utilities/Fabric/Patterns/transcribe_minutes",
+            "Utilities/Fabric/Patterns/translate",
+            "Utilities/Fabric/Patterns/tweet",
+            "Utilities/Fabric/Patterns/write_essay",
+            "Utilities/Fabric/Patterns/write_essay_pg",
+            "Utilities/Fabric/Patterns/write_hackerone_report",
+            "Utilities/Fabric/Patterns/write_latex",
+            "Utilities/Fabric/Patterns/write_micro_essay",
+            "Utilities/Fabric/Patterns/write_nuclei_template_rule",
+            "Utilities/Fabric/Patterns/write_pull-request",
+            "Utilities/Fabric/Patterns/write_semgrep_rule",
+            "Utilities/Fabric/Patterns/youtube_summary"
+          ],
+          "database": []
+        },
+        {
+          "name": "Parser",
+          "path": "Utilities/Parser",
+          "skillMd": "Utilities/Parser/SKILL.md",
+          "description": "Extract structured JSON from URLs, files, videos, PDFs with entity extraction and batch support. USE WHEN parse, extract, URL, transcript, entities, JSON, batch, content, YouTube, PDF, article, newsletter, Twitter, browser extension, collision detection, detect content type, extract article, extract newsletter, extract YouTube, extract PDF, parse content.",
+          "triggers": [
+            "parse",
+            "extract",
+            "URL",
+            "transcript",
+            "entities",
+            "JSON",
+            "batch",
+            "content",
+            "YouTube",
+            "PDF",
+            "article",
+            "newsletter",
+            "Twitter",
+            "browser extension",
+            "collision detection",
+            "detect content type",
+            "extract article",
+            "extract newsletter",
+            "extract YouTube",
+            "extract PDF",
+            "parse content"
+          ],
+          "workflows": [
+            {
+              "name": "BatchEntityExtractionGemini3",
+              "path": "Utilities/Parser/Workflows/BatchEntityExtractionGemini3.md"
+            },
+            {
+              "name": "CollisionDetection",
+              "path": "Utilities/Parser/Workflows/CollisionDetection.md"
+            },
+            {
+              "name": "DetectContentType",
+              "path": "Utilities/Parser/Workflows/DetectContentType.md"
+            },
+            {
+              "name": "ExtractArticle",
+              "path": "Utilities/Parser/Workflows/ExtractArticle.md"
+            },
+            {
+              "name": "ExtractBrowserExtension",
+              "path": "Utilities/Parser/Workflows/ExtractBrowserExtension.md"
+            },
+            {
+              "name": "ExtractNewsletter",
+              "path": "Utilities/Parser/Workflows/ExtractNewsletter.md"
+            },
+            {
+              "name": "ExtractPdf",
+              "path": "Utilities/Parser/Workflows/ExtractPdf.md"
+            },
+            {
+              "name": "ExtractTwitter",
+              "path": "Utilities/Parser/Workflows/ExtractTwitter.md"
+            },
+            {
+              "name": "ExtractYoutube",
+              "path": "Utilities/Parser/Workflows/ExtractYoutube.md"
+            },
+            {
+              "name": "ParseContent",
+              "path": "Utilities/Parser/Workflows/ParseContent.md"
+            }
+          ],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Prompting",
+          "path": "Utilities/Prompting",
+          "skillMd": "Utilities/Prompting/SKILL.md",
+          "description": "Meta-prompting system that generates optimized prompts using templates, standards, and patterns. Produces structured prompts with role, context, and output format. USE WHEN meta-prompting, template generation, prompt optimization, programmatic prompt composition, render template, validate template, prompt engineering.",
+          "triggers": [
+            "meta-prompting",
+            "template generation",
+            "prompt optimization",
+            "programmatic prompt composition",
+            "render template",
+            "validate template",
+            "prompt engineering"
+          ],
+          "workflows": [],
+          "tools": [
+            "Utilities/Prompting/Tools/RenderTemplate.ts",
+            "Utilities/Prompting/Tools/ValidateTemplate.ts",
+            "Utilities/Prompting/Tools/index.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "SAIUpgrade",
+          "path": "Utilities/PAIUpgrade",
+          "skillMd": "Utilities/PAIUpgrade/SKILL.md",
+          "description": "Extract system improvements from content AND monitor external sources (Anthropic ecosystem, YouTube). USE WHEN upgrade, improve system, system upgrade, analyze for improvements, check Anthropic, Anthropic changes, new Claude features, check YouTube, new videos, algorithm upgrade, mine reflections, find sources, research upgrade, AAI upgrade.",
+          "triggers": [
+            "upgrade",
+            "improve system",
+            "system upgrade",
+            "analyze for improvements",
+            "check Anthropic",
+            "Anthropic changes",
+            "new Claude features",
+            "check YouTube",
+            "new videos",
+            "algorithm upgrade",
+            "mine reflections",
+            "find sources",
+            "research upgrade",
+            "AAI upgrade"
+          ],
+          "workflows": [
+            {
+              "name": "AlgorithmUpgrade",
+              "path": "Utilities/PAIUpgrade/Workflows/AlgorithmUpgrade.md"
+            },
+            {
+              "name": "FindSources",
+              "path": "Utilities/PAIUpgrade/Workflows/FindSources.md"
+            },
+            {
+              "name": "MineReflections",
+              "path": "Utilities/PAIUpgrade/Workflows/MineReflections.md"
+            },
+            {
+              "name": "ResearchUpgrade",
+              "path": "Utilities/PAIUpgrade/Workflows/ResearchUpgrade.md"
+            },
+            {
+              "name": "Upgrade",
+              "path": "Utilities/PAIUpgrade/Workflows/Upgrade.md"
+            }
+          ],
+          "tools": [
+            "Utilities/PAIUpgrade/Tools/Anthropic.ts"
+          ],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        },
+        {
+          "name": "Utilities",
+          "path": "Utilities",
+          "skillMd": "Utilities/SKILL.md",
+          "description": "Developer utilities — CLI generation, skill scaffolding, delegation, upgrades, evals, documents, parsing, audio, Fabric, Cloudflare, browser automation, meta-prompting, aphorisms. USE WHEN create CLI, build CLI, command-line tool, wrap API, TypeScript CLI, create skill, scaffold skill, delegate, workstreams, upgrade, system upgrade, eval, evaluate, test agent, benchmark, run eval, document, process file, convert format, extract text, PDF, DOCX, XLSX, PPTX, Word, Excel, PowerPoint, merge PDF, fill form, tracked changes, parse, extract, URL, transcript, JSON, YouTube, article, newsletter, clean audio, edit audio, transcribe, audio pipeline, fabric, run fabric, summarize, Cloudflare, worker, deploy, Pages, MCP server, wrangler, DNS, KV, R2, D1, browser, screenshot, debug web, automate browser, web automation, meta-prompting, prompt optimization, render template, prompt engineering, aphorism, quote, find quote, search aphorisms.",
+          "triggers": [
+            "create CLI",
+            "build CLI",
+            "command-line tool",
+            "wrap API",
+            "TypeScript CLI",
+            "create skill",
+            "scaffold skill",
+            "delegate",
+            "workstreams",
+            "upgrade",
+            "system upgrade",
+            "eval",
+            "evaluate",
+            "test agent",
+            "benchmark",
+            "run eval",
+            "document",
+            "process file",
+            "convert format",
+            "extract text",
+            "PDF",
+            "DOCX",
+            "XLSX",
+            "PPTX",
+            "Word",
+            "Excel",
+            "PowerPoint",
+            "merge PDF",
+            "fill form",
+            "tracked changes",
+            "parse",
+            "extract",
+            "URL",
+            "transcript",
+            "JSON",
+            "YouTube",
+            "article",
+            "newsletter",
+            "clean audio",
+            "edit audio",
+            "transcribe",
+            "audio pipeline",
+            "fabric",
+            "run fabric",
+            "summarize",
+            "Cloudflare",
+            "worker",
+            "deploy",
+            "Pages",
+            "MCP server",
+            "wrangler",
+            "DNS",
+            "KV",
+            "R2",
+            "D1",
+            "browser",
+            "screenshot",
+            "debug web",
+            "automate browser",
+            "web automation",
+            "meta-prompting",
+            "prompt optimization",
+            "render template",
+            "prompt engineering",
+            "aphorism",
+            "quote",
+            "find quote",
+            "search aphorisms"
+          ],
+          "workflows": [],
+          "tools": [],
+          "templates": [],
+          "patterns": [],
+          "database": []
+        }
+      ]
+    }
+  ]
+}

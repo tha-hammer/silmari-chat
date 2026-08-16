@@ -1,0 +1,52 @@
+{
+  "name": "A_REEL_COMPOSE",
+  "version": "2.0.0",
+  "description": "LLM-first reel composer foundation (P1): brief → seed → walk → clip-boundaries; emits a ComposedPlan.",
+  "input": {
+    "brief":           { "type": "string",  "required": true },
+    "store":           { "type": "string",  "required": false, "description": "Named ZkStore identity. Defaults from ZK_STORE_NAME, then 'default'." },
+    "corpus_root":     { "type": "string",  "required": true, "description": "Shared source-video corpus root; never derived from store identity." },
+    "transcript_dir":  { "type": "string",  "required": true },
+    "walk_shape":      { "type": "string",  "required": false, "enum": ["linear-follows", "branches-explore", "mixed"] },
+    "hop_budget":      { "type": "number",  "required": false, "description": "Override duration-derived default" },
+    "cross_video":     { "type": "string",  "required": false, "default": "offer", "enum": ["exclude", "offer", "prefer"] },
+    "strict_seed":     { "type": "boolean", "required": false, "default": false },
+    "best_effort":     { "type": "boolean", "required": false, "default": false },
+    "compose_mode":    { "type": "string",  "required": false, "default": "deterministic", "enum": ["deterministic", "zk-native"], "description": "deterministic (default; graph-walk + perspective-aware dedup) or zk-native (single LLM-driven compose call). On zk-native failure runCompose transparently falls back to deterministic and surfaces a warning." },
+    "out":             { "type": "string",  "required": false, "description": "Plan JSON output path. Default: out/composed-plans/<ISO-timestamp>.json" }
+  },
+  "output": {
+    "plan_path":                    { "type": "string", "description": "Absolute path to the written ComposedPlan JSON" },
+    "status":                       { "type": "string", "enum": ["pass", "warn", "fail", "clarify"] },
+    "clip_count":                   { "type": "number" },
+    "walk_summary":                 { "type": "object" },
+    "cross_video_candidates_count": { "type": "number" },
+    "clarify":                      { "type": "object", "required": false, "description": "Present iff status='clarify'; mirrors ClarifyOutput {rephrased_briefs, weak_match_cards, question}" },
+    "warnings":                     { "type": "array" },
+    "preview_path":                 { "type": "string", "required": false, "description": "PV-5 (slice 8): absolute path to the preview MP4 emitted by runCompose's post-Step-7 preview pass. Absent when --no-preview was passed, when status is fail/clarify, or when PREVIEW_FFMPEG_FAILED was caught as warning." }
+  },
+  "env_vars": ["VIDEO_PIPELINE_ROOT", "COSMIC_VIDEO_ROOT", "COSMIC_PROJECT_ROOT", "COSMIC_VIDEO_INFERENCE_STUB", "ZK_STORE_NAME", "COSMIC_MEDIA_SOURCE_ROOT"],
+  "requires": ["shell"],
+  "side_effect": "file-mutation",
+  "notes": "Exit codes: 0 on pass/warn/clarify (non-strict); 2 on fail (incl. unmatched cards without best_effort); 3 on clarify when strict_seed=true; 1 on UNHANDLED (no parseable last-line JSON — A_REEL_COMPOSE must NOT attempt to parse stdout on exit 1). COSMIC_PROJECT_ROOT (P3 CR-6/CR-8): when set by the parent, the CLI auto-resolves projectRoot and writes media (videos + reels) under <projectRoot>/media/; the child process inherits this variable from the parent env (Bun.spawn default) — no Input field is required. When unset, the CLI falls back to JSONL discovery and may exit 2 with PROJECT_ROOT_UNRESOLVED.",
+  "pipeline_error_codes": [
+    {"code": "SEED_WEAK_STRICT",         "category": "weak_seed",       "retryable": false},
+    {"code": "SEED_CARD_NOT_FOUND",      "category": "not_found",       "retryable": false},
+    {"code": "CARD_STORE_NOT_FOUND",     "category": "not_found",       "retryable": false},
+    {"code": "TRANSCRIPT_DIR_NOT_FOUND", "category": "not_found",       "retryable": false},
+    {"code": "CARD_STORE_READ_FAILED",   "category": "card_store",      "retryable": false},
+    {"code": "INFERENCE_CALL_FAILED",    "category": "inference_call",  "retryable": true},
+    {"code": "INFERENCE_TIMEOUT",        "category": "inference_call",  "retryable": true},
+    {"code": "BRIEF_PARSE_INVALID_JSON", "category": "validation",      "retryable": false},
+    {"code": "BRIEF_PARSE_MISSING_FIELD","category": "validation",      "retryable": false},
+    {"code": "OUTPUT_WRITE_FAILED",      "category": "file_io",         "retryable": true},
+    {"code": "PROJECT_ROOT_UNRESOLVED",  "category": "validation",      "retryable": false},
+    {"code": "MEDIA_VIDEO_NOT_FOUND",    "category": "not_found",       "retryable": false},
+    {"code": "STORE_PATH_INPUT_REMOVED", "category": "validation",      "retryable": false},
+    {"code": "INVALID_STORE_NAME",       "category": "validation",      "retryable": false},
+    {"code": "CORPUS_ROOT_UNRESOLVED",   "category": "validation",      "retryable": false},
+    {"code": "STORE_NOT_FOUND",          "category": "not_found",       "retryable": false},
+    {"code": "STORE_SCHEMA_INCOMPATIBLE","category": "card_store",      "retryable": false},
+    {"code": "STORE_TIMEOUT",            "category": "card_store",      "retryable": true}
+  ]
+}

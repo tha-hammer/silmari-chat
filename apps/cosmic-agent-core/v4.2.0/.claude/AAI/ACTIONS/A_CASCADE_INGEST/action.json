@@ -1,0 +1,25 @@
+{
+  "name": "A_CASCADE_INGEST",
+  "version": "1.0.0",
+  "description": "Ingest cascade extracts (themes/ideas/micros/micros.v2) into card-graph.sqlite via vendored silmari-store; emit JSONL ingest report.",
+  "input": {
+    "video_id":        { "type": "string", "required": true },
+    "extracted_dir":   { "type": "string", "required": true },
+    "card_graph_path": { "type": "string", "required": false }
+  },
+  "output": {
+    "video_id":            { "type": "string" },
+    "card_graph_path":     { "type": "string" },
+    "ingest_report_path":  { "type": "string" },
+    "cards_saved":         { "type": "number" }
+  },
+  "env_vars": [
+    "SILMARI_STORE_BINARY",
+    "SILMARI_MEMORY_DB",
+    "CASCADE_INGEST_ENTRY",
+    "COSMIC_VIDEO_STORE",
+    "CASCADE_ENRICHMENT_MODE"
+  ],
+  "requires": ["shell"],
+  "side_effect": "idempotent-with-state"
+}

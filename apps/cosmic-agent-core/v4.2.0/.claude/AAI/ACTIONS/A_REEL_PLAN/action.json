@@ -1,0 +1,23 @@
+{
+  "name": "A_REEL_PLAN",
+  "version": "1.0.0",
+  "description": "Run cosmic-video plan over the card-graph + transcript and emit a reel plan JSON.",
+  "input": {
+    "video_id":         { "type": "string", "required": true },
+    "card_graph_path":  { "type": "string", "required": true },
+    "transcript_dir":   { "type": "string", "required": true },
+    "seed":             { "type": "string",  "default": "auto" },
+    "min":              { "type": "number",  "default": 30 },
+    "target":           { "type": "number",  "default": 60 },
+    "max":              { "type": "number",  "default": 90 },
+    "plan_path":        { "type": "string" }
+  },
+  "output": {
+    "video_id":  { "type": "string" },
+    "plan_path": { "type": "string" },
+    "cuts":      { "type": "number" }
+  },
+  "env_vars": ["VIDEO_PIPELINE_ROOT", "COSMIC_VIDEO_ROOT"],
+  "requires": ["shell"],
+  "side_effect": "idempotent-pure"
+}
