@@ -41,8 +41,11 @@ describe('CLAUDE_AGENT_SDK_PATH_EXTRACTORS', () => {
     expect(CLAUDE_AGENT_SDK_PATH_EXTRACTORS.Glob({ pattern: '*.ts' })).toEqual([]);
   });
 
-  it('has no entry for Bash — a documented, tracked gap', () => {
-    expect(CLAUDE_AGENT_SDK_PATH_EXTRACTORS.Bash).toBeUndefined();
+  it('extracts absolute path tokens from a Bash command (AF-hro9)', () => {
+    expect(CLAUDE_AGENT_SDK_PATH_EXTRACTORS.Bash({ command: 'cat /etc/passwd' })).toEqual([
+      '/etc/passwd',
+    ]);
+    expect(CLAUDE_AGENT_SDK_PATH_EXTRACTORS.Bash({ command: 'npx tsc --noEmit' })).toEqual([]);
   });
 });
 
@@ -77,10 +80,19 @@ describe('buildClaudeAgentSdkPreToolUseHook', () => {
     expect(result.decision).toBe('deny');
   });
 
-  it('does not path-gate Bash — passes through as allow (tracked gap)', async () => {
+  it('denies a Bash command targeting a path outside the workspace root (AF-hro9)', async () => {
     const hook = buildClaudeAgentSdkPreToolUseHook(alwaysAllow, root);
     const result = await hook(
       toolInput('Bash', { command: `cat ${outsidePath}` }),
+      new AbortController().signal,
+    );
+    expect(result.decision).toBe('deny');
+  });
+
+  it('allows a Bash command with no absolute/traversal path tokens', async () => {
+    const hook = buildClaudeAgentSdkPreToolUseHook(alwaysAllow, root);
+    const result = await hook(
+      toolInput('Bash', { command: 'npx tsc --noEmit' }),
       new AbortController().signal,
     );
     expect(result.decision).toBe('allow');

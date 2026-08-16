@@ -34,7 +34,11 @@ import { getScopedTokenConfigKey } from '~/endpoints/keys';
 import { getCustomEndpointConfig } from '~/app/config';
 import { createBamlFunctions } from '~/baml/loader';
 import { fetchModels } from '~/endpoints/models';
-import { createToolPolicyHook, createWorkspacePolicyHook } from '@librechat/agents';
+import {
+  createToolPolicyHook,
+  createWorkspacePolicyHook,
+  extractCompileCheckPaths,
+} from '@librechat/agents';
 import type { HookCallback } from '@librechat/agents';
 import { validateEndpointURL } from '~/auth';
 import { tokenConfigCache } from '~/cache';
@@ -253,16 +257,13 @@ function resolveClaudeAgentSdkWritableConfigRoots(configDir: string): string[] {
  * `sdk-tools.d.ts` (`FileReadInput`/`FileWriteInput`/`FileEditInput`/
  * `GlobInput`/`GrepInput`/`NotebookEditInput`).
  *
- * `Bash` is deliberately NOT covered here. `createWorkspacePolicyHook`'s
- * own `compile_check` extractor parses command strings for path tokens via
- * a regex that has already needed several correctness fixes upstream
- * (quoting, `..` traversal, `~`/`$HOME` expansion — see
- * `createWorkspacePolicyHook.ts`'s own inline history) and isn't exported
- * publicly. Re-deriving an equivalent regex here ad hoc, untested, would
- * repeat exactly the class of bug that regex was hardened against. Until
- * that extractor is exported and reused, a Claude Agent SDK `Bash` call is
- * gated only by `createToolPolicyHook`'s tool-name policy, not by a path
- * boundary — tracked as a follow-up, not solved by this change.
+ * `Bash` reuses `extractCompileCheckPaths` (AF-hro9, exported from
+ * `silmari-chat-agents`'s `createWorkspacePolicyHook` module) rather than
+ * re-deriving an equivalent regex ad hoc here — that extractor has already
+ * needed several correctness fixes upstream (quoting, `..` traversal,
+ * `~`/`$HOME` expansion — see `createWorkspacePolicyHook.ts`'s own inline
+ * history), and duplicating it untested would risk reintroducing exactly
+ * the bugs it was hardened against.
  */
 export const CLAUDE_AGENT_SDK_PATH_EXTRACTORS: Record<
   string,
@@ -275,6 +276,7 @@ export const CLAUDE_AGENT_SDK_PATH_EXTRACTORS: Record<
     typeof i.notebook_path === 'string' && i.notebook_path !== '' ? [i.notebook_path] : [],
   Grep: (i) => (typeof i.path === 'string' && i.path !== '' ? [i.path] : []),
   Glob: (i) => (typeof i.path === 'string' && i.path !== '' ? [i.path] : []),
+  Bash: (i) => (typeof i.command === 'string' ? extractCompileCheckPaths(i.command) : []),
 };
 
 /**
@@ -358,9 +360,9 @@ export function buildClaudeAgentSdkPreToolUseHook(
  * sharing this container's config dir gets the same two writable roots, same
  * as their `hooks/`/`skills/`/`agents/`/`commands/`/`settings.json` staying
  * read-only regardless of who's asking (see
- * `resolveClaudeAgentSdkWritableConfigRoots`). `Bash` is not path-gated (see
- * `buildClaudeAgentSdkPreToolUseHook`'s own comment) — a documented,
- * tracked gap, not an oversight.
+ * `resolveClaudeAgentSdkWritableConfigRoots`). `Bash` is path-gated too
+ * (AF-hro9, via `extractCompileCheckPaths`) — every built-in tool this
+ * provider exposes now has a path boundary, not just the file-shaped ones.
  */
 async function initializeClaudeAgentSdk({
   req,
