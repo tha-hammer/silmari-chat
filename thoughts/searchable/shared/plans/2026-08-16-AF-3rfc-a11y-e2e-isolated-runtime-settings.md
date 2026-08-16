@@ -82,11 +82,11 @@ No repository files change in this phase.
 - [ ] The already-recorded safe RED command below reports 19 tests in 11 files and `[chromium]` labels:
 
   ```bash
-  NODE_PATH=/home/maceo/ntm_Dev/clerk-auth-2026-08-13-05-31/node_modules \
+  NODE_PATH=/home/maceo/Dev/silmari-chat/node_modules \
     E2E_BASE_URL=http://127.0.0.1:43127 \
     E2E_USE_MEMORY_MONGO=true \
     E2E_CHROMIUM_CHANNEL=chrome \
-    /home/maceo/ntm_Dev/clerk-auth-2026-08-13-05-31/node_modules/.bin/playwright \
+    /home/maceo/Dev/silmari-chat/node_modules/.bin/playwright \
     test --config=e2e/playwright.config.a11y.ts --list
   ```
 - [ ] No command sends an HTTP request to port 3080.
