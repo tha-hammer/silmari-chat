@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { homedir } from 'node:os';
 import { Providers } from '@librechat/agents';
 import {
   ErrorTypes,
@@ -21,7 +22,11 @@ import type {
 } from '~/types';
 import { getLLMConfig as getAnthropicLLMConfig } from '~/endpoints/anthropic/llm';
 import { isBamlEndpoint, isClaudeAgentSdkEndpoint } from '~/endpoints/custom/provider';
-import { resolveToolApprovalPolicy, mapToolApprovalPolicy, isHITLEnabled } from '~/agents/hitl/policy';
+import {
+  resolveToolApprovalPolicy,
+  mapToolApprovalPolicy,
+  isHITLEnabled,
+} from '~/agents/hitl/policy';
 import { extractDefaultParams } from '~/endpoints/openai/llm';
 import { isUserProvided, checkUserKeyExpiry } from '~/utils';
 import { getOpenAIConfig } from '~/endpoints/openai/config';
@@ -29,7 +34,8 @@ import { getScopedTokenConfigKey } from '~/endpoints/keys';
 import { getCustomEndpointConfig } from '~/app/config';
 import { createBamlFunctions } from '~/baml/loader';
 import { fetchModels } from '~/endpoints/models';
-import { createToolPolicyHook } from '@librechat/agents';
+import { createToolPolicyHook, createWorkspacePolicyHook } from '@librechat/agents';
+import type { HookCallback } from '@librechat/agents';
 import { validateEndpointURL } from '~/auth';
 import { tokenConfigCache } from '~/cache';
 
@@ -209,6 +215,112 @@ function resolveClaudeAgentSdkWorkspace(req: ServerRequest): string {
 }
 
 /**
+ * Where the shipped AAI agent infrastructure (`apps/cosmic-agent-core/`,
+ * baked into `/home/node/.claude` by the Dockerfile) actually lives at
+ * runtime — mirrors `ChatClaudeAgentSDK.ts`'s own `ensureClaudeConfigDirExists`
+ * resolution (`CLAUDE_CONFIG_DIR` env var, else `$HOME/.claude`) so both sides
+ * agree on the same directory without either one hardcoding it.
+ */
+function resolveClaudeAgentSdkConfigDir(): string {
+  return process.env.CLAUDE_CONFIG_DIR ?? path.join(homedir(), '.claude');
+}
+
+/**
+ * The AAI package's own two mutable subtrees, per its documented
+ * SYSTEM/USER-extensibility convention: `MEMORY/` (persistent memory store)
+ * and `AAI/USER/` (user-level overrides). Deliberately narrower than the
+ * whole config dir — `hooks/*.hook.ts` (executable), `skills/`, `agents/`,
+ * `commands/`, and root `settings.json`/`CLAUDE.md` must stay outside the
+ * write-allow boundary, since every requesting user shares this one
+ * container's config dir and a write there would be persistent and would
+ * affect every other user's subsequent session, not just the writer's own.
+ */
+function resolveClaudeAgentSdkWritableConfigRoots(configDir: string): string[] {
+  return [path.resolve(configDir, 'MEMORY'), path.resolve(configDir, 'AAI', 'USER')];
+}
+
+/**
+ * `createWorkspacePolicyHook`'s default `pathExtractors` are keyed to this
+ * repo's own local-engine tool names (`read_file`, `write_file`, ...) and
+ * their `path` field — Claude Agent SDK's subprocess drives Claude Code's
+ * own built-in tools instead (`Read`/`Write`/`Edit`/`Grep`/`Glob`/
+ * `NotebookEdit`, PascalCase, `file_path`/`path`/`notebook_path` fields).
+ * Wiring the hook in without this mapping would silently no-op — every
+ * built-in tool call would fall through the `extractor == null` branch and
+ * get `allow`ed regardless of path (AF-j59p).
+ *
+ * Field names confirmed against `@anthropic-ai/claude-agent-sdk`'s own
+ * `sdk-tools.d.ts` (`FileReadInput`/`FileWriteInput`/`FileEditInput`/
+ * `GlobInput`/`GrepInput`/`NotebookEditInput`).
+ *
+ * `Bash` is deliberately NOT covered here. `createWorkspacePolicyHook`'s
+ * own `compile_check` extractor parses command strings for path tokens via
+ * a regex that has already needed several correctness fixes upstream
+ * (quoting, `..` traversal, `~`/`$HOME` expansion — see
+ * `createWorkspacePolicyHook.ts`'s own inline history) and isn't exported
+ * publicly. Re-deriving an equivalent regex here ad hoc, untested, would
+ * repeat exactly the class of bug that regex was hardened against. Until
+ * that extractor is exported and reused, a Claude Agent SDK `Bash` call is
+ * gated only by `createToolPolicyHook`'s tool-name policy, not by a path
+ * boundary — tracked as a follow-up, not solved by this change.
+ */
+export const CLAUDE_AGENT_SDK_PATH_EXTRACTORS: Record<
+  string,
+  (input: Record<string, unknown>) => readonly string[]
+> = {
+  Read: (i) => (typeof i.file_path === 'string' && i.file_path !== '' ? [i.file_path] : []),
+  Write: (i) => (typeof i.file_path === 'string' && i.file_path !== '' ? [i.file_path] : []),
+  Edit: (i) => (typeof i.file_path === 'string' && i.file_path !== '' ? [i.file_path] : []),
+  NotebookEdit: (i) =>
+    typeof i.notebook_path === 'string' && i.notebook_path !== '' ? [i.notebook_path] : [],
+  Grep: (i) => (typeof i.path === 'string' && i.path !== '' ? [i.path] : []),
+  Glob: (i) => (typeof i.path === 'string' && i.path !== '' ? [i.path] : []),
+};
+
+/**
+ * Composes the endpoint's existing tool-approval gate with a hard
+ * workspace-boundary gate, mirroring the two-hook composition documented in
+ * `docs/providers/claude-agent-sdk.md` §6 (this provider bridges exactly
+ * one `preToolUseHook`, not this repo's full multi-hook `HookRegistry`, so
+ * composition is the caller's job).
+ *
+ * `outsideRead`/`outsideWrite` are set to `'deny'` explicitly rather than
+ * left at the hook's own `'ask'` default: this endpoint has no
+ * `hitlResolver` wired (§7), so an `ask` decision already degrades to a
+ * silent deny today — but that collapse is incidental to "no resolver
+ * configured yet," not a declared policy. Setting `'deny'` here keeps the
+ * boundary hard even if a `hitlResolver` is added later for unrelated
+ * reasons (e.g. surfacing tool-approval UI), so this endpoint's file
+ * access doesn't silently loosen as a side effect of that change.
+ *
+ * `additionalWritableRoots` (the shipped AAI package's `MEMORY/`/`AAI/USER/`
+ * subtrees, see `resolveClaudeAgentSdkWritableConfigRoots`) are folded in as
+ * `additionalRoots` on the SAME policy config — `outsideWrite: 'deny'` still
+ * applies to everything else in `CLAUDE_CONFIG_DIR` (hooks/skills/agents/
+ * commands/settings.json), only these two paths count as inside-workspace.
+ */
+export function buildClaudeAgentSdkPreToolUseHook(
+  toolPolicyHook: HookCallback<'PreToolUse'>,
+  workspaceRoot: string,
+  additionalWritableRoots: readonly string[] = [],
+): HookCallback<'PreToolUse'> {
+  const workspacePolicyHook = createWorkspacePolicyHook({
+    root: workspaceRoot,
+    additionalRoots: additionalWritableRoots,
+    outsideRead: 'deny',
+    outsideWrite: 'deny',
+    pathExtractors: CLAUDE_AGENT_SDK_PATH_EXTRACTORS,
+  });
+  return async (input, signal) => {
+    const toolPolicyResult = await toolPolicyHook(input, signal);
+    if (toolPolicyResult.decision === 'deny') {
+      return toolPolicyResult;
+    }
+    return workspacePolicyHook(input, signal);
+  };
+}
+
+/**
  * Initializes a Claude Agent SDK-backed custom endpoint.
  *
  * Runs BEFORE any generic custom work, same as {@link initializeBaml} — no
@@ -219,22 +331,36 @@ function resolveClaudeAgentSdkWorkspace(req: ServerRequest): string {
  * whatever the CLI resolves; `models.default` exists only so the endpoint has
  * a selectable entry in the model picker).
  *
- * `preToolUseHook` mirrors this endpoint's own tool-approval gating for every
- * other provider (`agents/run.ts`'s `buildHITLRunWiring`): when
- * `endpoints.agents.toolApproval.enabled` is not set — the default — tools
- * must behave like they do for every other provider, so `mode: 'bypass'`
- * lets Claude's internal tool loop run unimpeded. When an admin opts into
- * tool approval, the configured policy governs — with one real, honest gap:
- * unlike `ToolNode`'s resumable interrupt, an `ask` decision here has no
- * `hitlResolver` wired (no live human-response transport exists yet, see
- * `docs/providers/claude-agent-sdk.md` in `silmari-chat-agents`), so it
- * degrades to an immediate deny rather than a pause a user can approve.
+ * `preToolUseHook` composes two gates (`buildClaudeAgentSdkPreToolUseHook`,
+ * AF-j59p):
+ *
+ * 1. Tool-approval gating, mirroring every other provider (`agents/run.ts`'s
+ *    `buildHITLRunWiring`): when `endpoints.agents.toolApproval.enabled` is
+ *    not set — the default — `mode: 'bypass'` lets Claude's internal tool
+ *    loop run unimpeded. When an admin opts in, the configured policy
+ *    governs — with one real, honest gap: unlike `ToolNode`'s resumable
+ *    interrupt, an `ask` decision here has no `hitlResolver` wired (no live
+ *    human-response transport exists yet, see
+ *    `docs/providers/claude-agent-sdk.md` in `silmari-chat-agents`), so it
+ *    degrades to an immediate deny rather than a pause a user can approve.
+ * 2. A hard workspace-boundary gate scoped to `cwd`, mapped onto Claude's own
+ *    built-in tool names/input shapes — without this, Claude's `Read`/
+ *    `Write`/`Edit`/`Grep`/`Glob`/`NotebookEdit` tools have no path
+ *    enforcement beyond the subprocess's own working directory (a `cwd` is
+ *    a default, not a jail): `Read` with an absolute `file_path` elsewhere
+ *    on the host filesystem would otherwise succeed.
  *
  * `cwd` scopes the subprocess to the requesting user's own upload directory
  * (`resolveClaudeAgentSdkWorkspace` — same `uploads/<req.user.id>` isolation
  * the app's local file-upload strategy already relies on). `workspace`
- * (`additionalDirectories`) stays unset: this is a single-root scope, not a
- * multi-root one.
+ * (`additionalDirectories`) additionally grants the shipped AAI package's own
+ * `MEMORY/`/`AAI/USER/` subtrees under `CLAUDE_CONFIG_DIR` — every other user
+ * sharing this container's config dir gets the same two writable roots, same
+ * as their `hooks/`/`skills/`/`agents/`/`commands/`/`settings.json` staying
+ * read-only regardless of who's asking (see
+ * `resolveClaudeAgentSdkWritableConfigRoots`). `Bash` is not path-gated (see
+ * `buildClaudeAgentSdkPreToolUseHook`'s own comment) — a documented,
+ * tracked gap, not an oversight.
  */
 async function initializeClaudeAgentSdk({
   req,
@@ -250,15 +376,18 @@ async function initializeClaudeAgentSdk({
   const toolApprovalPolicy = resolveToolApprovalPolicy({
     endpoint: appConfig?.endpoints?.[EModelEndpoint.agents]?.toolApproval,
   });
-  const preToolUseHook = isHITLEnabled(toolApprovalPolicy)
+  const toolPolicyHook = isHITLEnabled(toolApprovalPolicy)
     ? createToolPolicyHook(mapToolApprovalPolicy(toolApprovalPolicy) ?? {})
     : createToolPolicyHook({ mode: 'bypass' });
   const cwd = resolveClaudeAgentSdkWorkspace(req);
+  const claudeConfigDir = resolveClaudeAgentSdkConfigDir();
+  const additionalRoots = resolveClaudeAgentSdkWritableConfigRoots(claudeConfigDir);
+  const preToolUseHook = buildClaudeAgentSdkPreToolUseHook(toolPolicyHook, cwd, additionalRoots);
 
   return {
     provider: Providers.CLAUDE_AGENT_SDK,
     /** Declarative only — this is what becomes `agent.model_parameters`. */
-    llmConfig: { cwd },
+    llmConfig: { cwd, workspace: { root: cwd, additionalRoots } },
     /** Executable, request-only. Never persisted; see `~/agents/runtime`. */
     runtimeOptions: { preToolUseHook },
     endpointTokenConfig:

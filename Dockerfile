@@ -96,6 +96,14 @@ ENV BUILD_DATE=${BUILD_DATE}
 # (`user: "${UID}:${GID}"`), and an arbitrary host uid has no /etc/passwd
 # entry in this image for os.homedir() to resolve against.
 COPY --chown=node:node apps/cosmic-agent-core/v4.2.0/.claude /home/node/.claude
+# --chown=node:node alone leaves this tree unwritable by the arbitrary
+# runtime uid Compose actually runs as (owner-only 755) -- the claude CLI
+# needs to create fresh runtime-state directories here (session transcripts
+# under projects/, etc.) that don't exist in this static, freshly-cloned
+# copy. Grant world-write on directories only (existing files keep their
+# own permissions) so file/subdirectory *creation* works under any uid,
+# without making already-shipped hooks/skills/config content writable.
+RUN find /home/node/.claude -type d -exec chmod o+w {} +
 ENV CLAUDE_CONFIG_DIR=/home/node/.claude
 
 # Node API setup
