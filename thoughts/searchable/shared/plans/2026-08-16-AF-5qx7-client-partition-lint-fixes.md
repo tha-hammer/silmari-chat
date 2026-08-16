@@ -131,12 +131,14 @@ The only two i18n errors in reachable production code.
 ### Success Criteria
 
 #### Automated Verification
-- [ ] `node node_modules/eslint/bin/eslint.js --ext .js,.jsx,.ts,.tsx client/src/components/Auth/SocialLoginRender.tsx client/src/components/SidePanel/Builder/Images.tsx` exits 0
-- [ ] `node -e "JSON.parse(require('fs').readFileSync('client/src/locales/en/translation.json'))"` exits 0 (valid JSON)
-- [ ] `cd client && npx tsc --noEmit` passes
+- [x] `node node_modules/eslint/bin/eslint.js --ext .js,.jsx,.ts,.tsx client/src/components/Auth/SocialLoginRender.tsx client/src/components/SidePanel/Builder/Images.tsx` exits 0 — CONFIRMED
+- [x] `node -e "JSON.parse(require('fs').readFileSync('client/src/locales/en/translation.json'))"` exits 0 — CONFIRMED
+- [x] `cd client && npx tsc --noEmit` — CONFIRMED no new errors (only the same pre-existing unbuilt-`packages/client` issue noted in Batch 1)
+
+Committed as `f886c9a86` (combined with Batch 6, see below).
 
 #### Manual Verification
-- [ ] Rendered text on the login page still reads "Or" and the Assistant avatar upload menu still reads "Upload Photo" (visually unchanged — confirm via `npm run frontend:dev` and navigating to `/login` and an Assistant builder panel's avatar upload menu)
+- [ ] Rendered text on the login page still reads "Or" and the Assistant avatar upload menu still reads "Upload Photo" — not yet manually verified in a browser (implemented collaboratively across a teammate handoff; flagging as outstanding rather than claiming unverified success)
 
 ---
 
@@ -344,9 +346,11 @@ Add to `client/src/locales/en/translation.json`:
 ### Success Criteria
 
 #### Automated Verification
-- [ ] `node node_modules/eslint/bin/eslint.js --ext .js,.jsx,.ts,.tsx client/src/components/Chat/Input/ActiveSetting.tsx client/src/components/Chat/Input/Files/Table/TemplateTable.tsx` exits 0
-- [ ] `node -e "JSON.parse(require('fs').readFileSync('client/src/locales/en/translation.json'))"` exits 0
-- [ ] `cd client && npx tsc --noEmit` passes
+- [x] `node node_modules/eslint/bin/eslint.js --ext .js,.jsx,.ts,.tsx client/src/components/Chat/Input/ActiveSetting.tsx client/src/components/Chat/Input/Files/Table/TemplateTable.tsx` exits 0 — CONFIRMED
+- [x] `node -e "JSON.parse(require('fs').readFileSync('client/src/locales/en/translation.json'))"` exits 0 — CONFIRMED
+- [x] `cd client && npx tsc --noEmit` — CONFIRMED no new errors
+
+Committed as `f886c9a86` (combined with Batch 2).
 
 #### Manual Verification
 - None (dead code).
@@ -356,17 +360,20 @@ Add to `client/src/locales/en/translation.json`:
 ## Final Verification (after this plan's 3 executed batches — 1, 2, 6)
 
 #### Automated Verification
-- [ ] Scoped eslint run across all files this plan touched (Batch 1's 11 files + Batch 2's 2 files + Batch 6's 2 files = 15 files) exits 0 with no errors or warnings
-- [ ] Full `node node_modules/eslint/bin/eslint.js --ext .js,.jsx,.ts,.tsx --ignore-pattern '**/*.cjs' --ignore-pattern '**/*.mjs' client` (matches `scripts/lint.mts`'s exact invocation) — run this only after confirming with the team that BronzeHill's `Files/**` slice has also landed (per Agent Mail coordination, this joint check is WindyGorge's to run once all slices are in — but no harm in this plan's author confirming it independently once both are ready)
-- [ ] `cd client && npx tsc --noEmit` passes (or repo's equivalent client typecheck command)
-- [ ] `npm run sort-imports:check` still passes (new `useLocalize`/`useCallback` imports must be correctly ordered per the project's import-sort convention, already enforced repo-wide by AF-f490's fix)
-- [ ] `node -e "JSON.parse(require('fs').readFileSync('client/src/locales/en/translation.json'))"` exits 0
-- [ ] Full client test suite unaffected: `cd client && npx jest` (compare pass count to pre-change baseline; expect identical pass/fail counts since no test coverage exists for the dead-code family and live-file changes are label-text-only)
+- [x] Scoped eslint run across all files this plan touched (Batch 1's 11 files + Batch 2's 2 files + Batch 6's 2 files = 15 files) exits 0 with no errors or warnings — CONFIRMED
+- [x] Full `node node_modules/eslint/bin/eslint.js --ext .js,.jsx,.ts,.tsx --ignore-pattern '**/*.cjs' --ignore-pattern '**/*.mjs' client` — CONFIRMED exit 0, 0 output. BronzeHill's `Files/**` slice landed first (commit `c66c0cc3d`); this plan's slice committed second (`f886c9a86`). The whole `client` partition is clean.
+- [x] `cd client && npx tsc --noEmit` — CONFIRMED no new errors from either slice; only the pre-existing repo-wide unbuilt-`packages/client` issue remains, unrelated to AF-5qx7.
+- [x] `npm run sort-imports:check` — CONFIRMED "All 3309 files already sorted."
+- [x] `node -e "JSON.parse(require('fs').readFileSync('client/src/locales/en/translation.json'))"` exits 0 — CONFIRMED
+- [x] Full client test suite: `cd client && npx jest` — ran; 173/311 suites fail, 2050/2051 individual tests pass. Investigated both failure classes, neither caused by AF-5qx7 work:
+  - 173 suite failures all trace to the same pre-existing `Cannot find module '@librechat/client'` resolution error (confirmed `packages/client/dist` doesn't exist — unbuilt package, an environment/build-setup issue unrelated to any lint fix; same root cause already identified in Batch 1's typecheck check).
+  - The 1 individual test failure (`src/locales/Translation.spec.ts` › "defines the English Clerk bridge labels...") expects `com_auth_clerk_sign_in: 'Continue with Clerk'`; the actual file has `"Login To Nolme AI"` — a pre-existing product-branding customization from unrelated prior work (not touched by any AF-5qx7 commit today; verified via `grep` that no diff in this session's history touches that key).
+  - Neither failure class is a regression from this plan's changes.
 
 #### Manual Verification
-- [ ] Login page "Or" divider renders correctly (Batch 2)
-- [ ] Assistant avatar "Upload Photo" menu item renders correctly (Batch 2)
-- [ ] No new TypeScript/build errors surfaced by `npm run frontend:dev` startup
+- [ ] Login page "Or" divider renders correctly (Batch 2) — not yet browser-verified
+- [ ] Assistant avatar "Upload Photo" menu item renders correctly (Batch 2) — not yet browser-verified
+- [ ] `npm run frontend:dev` startup — not yet run
 
 ## Testing Strategy
 
