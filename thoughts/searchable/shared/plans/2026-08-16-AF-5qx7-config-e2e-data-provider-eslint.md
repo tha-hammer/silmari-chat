@@ -56,29 +56,29 @@ partitions ready.
 
 ### Red
 
-- [ ] Confirm `packages/data-provider/src/config.ts:2190` fails
+- [x] Confirm `packages/data-provider/src/config.ts:2190` fails
   `no-nested-ternary` and no other data-provider finding exists.
 
 ### Green
 
 **File**: `packages/data-provider/src/config.ts`
 
-- [ ] Initialize `issues` to an explicitly typed empty `BamlIssue[]`.
-- [ ] Assign BAML issues in an `if` branch and Claude Agent SDK issues in an `else if`
+- [x] Initialize `issues` to an explicitly typed empty `BamlIssue[]`.
+- [x] Assign BAML issues in an `if` branch and Claude Agent SDK issues in an `else if`
   branch, preserving the empty default for other endpoints.
-- [ ] Leave issue emission and both builder functions unchanged.
+- [x] Leave issue emission and both builder functions unchanged.
 
 ### Refactor and Verify
 
-- [ ] Direct data-provider ESLint passes with `--max-warnings 0`.
-- [ ] Existing BAML config schema tests pass.
-- [ ] Data-provider build passes if the shared workspace remains stable for the build.
+- [x] Direct data-provider ESLint passes with `--max-warnings 0`.
+- [x] Existing BAML config schema tests pass.
+- [x] Data-provider build passes if the shared workspace remains stable for the build.
 
 ## Phase 2: Config Formatting and Binding Cleanup
 
 ### Red
 
-- [ ] Confirm 3 errors and 3 warnings in the config partition.
+- [x] Confirm 3 errors and 3 warnings in the config partition.
 
 ### Green
 
@@ -94,14 +94,14 @@ partitions ready.
 
 ### Refactor and Verify
 
-- [ ] Direct config ESLint passes with `--max-warnings 0`.
-- [ ] Review the diff to confirm no executable expression changed beyond unused bindings.
+- [x] Direct config ESLint passes with `--max-warnings 0`.
+- [x] Review the diff to confirm no executable expression changed beyond unused bindings.
 
 ## Phase 3: E2E Dead-Binding Cleanup
 
 ### Red
 
-- [ ] Confirm 4 errors in the e2e partition.
+- [x] Confirm 4 errors in the e2e partition.
 
 ### Green
 
@@ -114,8 +114,8 @@ partitions ready.
 
 ### Refactor and Verify
 
-- [ ] Direct e2e ESLint passes with `--max-warnings 0`.
-- [ ] Review the diff to confirm test actions and assertions are unchanged.
+- [x] Direct e2e ESLint passes with `--max-warnings 0`.
+- [x] Review the diff to confirm test actions and assertions are unchanged.
 
 ## Testing Strategy
 
@@ -140,8 +140,8 @@ shared lint configuration and partitions.
 
 ### Manual Verification
 
-- [ ] Inspect every source diff for expression-order or assertion changes.
-- [ ] Confirm staging contains only the announced partition plus this agent's workflow
+- [x] Inspect every source diff for expression-order or assertion changes.
+- [x] Confirm staging contains only the announced partition plus this agent's workflow
   artifacts.
 
 ## Workflow Closure
@@ -225,6 +225,25 @@ tree; no auth-user cache invalidation is applicable.
 There is no runtime performance or migration impact. The data-provider selector remains a
 single ordered discriminator check, and the other edits remove unused syntax or apply
 formatting.
+
+## Implementation Evidence
+
+- Workflow artifacts: `c17e9e422`
+- Data-provider selector cleanup: `1f5ed0766`
+  - Scoped ESLint: 0 findings, exit 0 with `--max-warnings 0`
+  - BAML grammar suite: 25/25 tests passed
+  - `npm run build:data-provider`: exit 0
+- Config cleanup: `dd3cc8b43`
+  - Scoped ESLint: 0 findings, exit 0 with `--max-warnings 0`
+  - Targeted Prettier check: exit 0
+- E2E cleanup: `c4b7a945c`
+  - Scoped ESLint: 0 findings, exit 0 with `--max-warnings 0`
+  - Targeted Prettier check: exit 0
+- Coordinated repository verification after all partitions landed:
+  - `node --version && npm run lint`: Node `v24.16.0`, all 10 source partitions
+    scanned, exit 0 (`Lint passed across 10 source partitions.`)
+  - `npm run sort-imports:check`: all 3309 files sorted, exit 0
+  - `git diff --check`: exit 0
 
 ## References
 
