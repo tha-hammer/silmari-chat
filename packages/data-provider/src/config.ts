@@ -2187,11 +2187,12 @@ const customEndpointsSchema = z
   .array(endpointSchema.partial())
   .superRefine((endpoints, ctx) => {
     endpoints.forEach((endpoint, index) => {
-      const issues = isBamlEndpoint(endpoint)
-        ? bamlEndpointIssues(endpoint as Record<string, unknown>, index)
-        : isClaudeAgentSdkEndpoint(endpoint)
-          ? claudeAgentSdkEndpointIssues(endpoint as Record<string, unknown>, index)
-          : [];
+      let issues: BamlIssue[] = [];
+      if (isBamlEndpoint(endpoint)) {
+        issues = bamlEndpointIssues(endpoint as Record<string, unknown>, index);
+      } else if (isClaudeAgentSdkEndpoint(endpoint)) {
+        issues = claudeAgentSdkEndpointIssues(endpoint as Record<string, unknown>, index);
+      }
       for (const issue of issues) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: issue.path, message: issue.message });
       }
