@@ -56,6 +56,7 @@
     "build:client-package": "cd packages/client && npm run build",
     "build:baml": "npx tsc -p baml_ts/tsconfig.json",
     "generate:baml": "baml generate && npm run build:baml",
+    "baml:docker-acceptance": "node scripts/baml-docker-acceptance.mjs",
     "build:packages": "npm run build:data-provider && npm run build:data-schemas && npm run build:api && npm run build:client-package",
     "build": "npx turbo run build",
     "build:safe": "npx turbo run build --no-daemon",

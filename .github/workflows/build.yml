@@ -33,6 +33,41 @@ jobs:
           baml check --from packages/api
           git diff --exit-code -- packages/api/baml_src packages/api/src/baml/generated packages/api/baml.generated.sha256
 
+      - name: 'BAML release acceptance (build-command wiring, turbo inputs, driver presence, installer pins)'
+        run: npm --prefix packages/api run test:baml-release
+
+  baml-release-drivers:
+    needs: baml-generation-freshness
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout repository'
+        uses: actions/checkout@v4
+
+      - name: 'Use Node 24'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.16.0
+
+      - name: 'Use Bun'
+        uses: oven-sh/setup-bun@v2
+
+      - name: 'Install pinned BAML toolchain'
+        run: |
+          ./scripts/install-baml-toolchain.sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: 'Install dependencies'
+        run: npm ci
+
+      - name: 'BAML build matrix (npm/bun/turbo build variants)'
+        run: npm --prefix packages/api run baml:build-matrix
+
+      - name: 'BAML watch-mode acceptance (dev + prod)'
+        run: npm --prefix packages/api run baml:watch-acceptance
+
+      - name: 'BAML Docker acceptance (package-owned runtime image)'
+        run: npm run baml:docker-acceptance
+
   build-and-push:
     needs: baml-generation-freshness
     runs-on: ubuntu-latest
