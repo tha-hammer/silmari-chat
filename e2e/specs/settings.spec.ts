@@ -32,17 +32,8 @@ test.describe('Settings suite', () => {
     const button1 = page.getByRole('button', { name: 'Mode: BingAI' });
     const button2 = page.getByRole('button', { name: 'Mode: Sydney' });
 
-    try {
-      await button1.click({ timeout: 100 });
-    } catch (e) {
-      // console.log('Bing button', e);
-    }
-
-    try {
-      await button2.click({ timeout: 100 });
-    } catch (e) {
-      // console.log('Sydney button', e);
-    }
+    await button1.click({ timeout: 100 }).catch(() => undefined);
+    await button2.click({ timeout: 100 }).catch(() => undefined);
     await page.getByRole('option', { name: 'Sydney' }).click();
     await page.getByRole('tab', { name: 'Balanced' }).click();
 
@@ -56,7 +47,6 @@ test.describe('Settings suite', () => {
     await endpointItem.click();
 
     // Check if the settings persisted
-    const localStorage = await page.evaluate(() => window.localStorage);
     const button = page.getByRole('button', { name: 'Mode: Sydney' });
     expect(button.count()).toBeTruthy();
   });
