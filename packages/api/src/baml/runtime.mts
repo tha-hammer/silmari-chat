@@ -17,8 +17,6 @@ import type {
   WorkerMode,
   WorkerTurnInput,
 } from './protocol';
-import { BamlAbortError, BamlTransportError } from './errors';
-import { projectTranscript } from './transcript';
 import {
   BAML_CALL_TIMEOUT_MS,
   BAML_STREAM_FINAL_TIMEOUT_MS,
@@ -35,6 +33,8 @@ import {
   createPartialTextCursor,
   unboundToolMessage,
 } from './protocol';
+import { BamlAbortError, BamlTransportError } from './errors';
+import { projectTranscript } from './transcript';
 
 /**
  * The parent facade: the whole BAML port, minus anything native.

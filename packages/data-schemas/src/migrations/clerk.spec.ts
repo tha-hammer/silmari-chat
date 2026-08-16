@@ -3,8 +3,8 @@ import path from 'path';
 import mongoose from 'mongoose';
 import { MongoServerError } from 'mongodb';
 import { MongoMemoryReplSet, MongoMemoryServer } from 'mongodb-memory-server';
-import logger from '~/config/winston';
 import { ensureClerkIndexes, ClerkIndexAssuranceError, CLERK_INDEX_SPECS } from './clerk';
+import logger from '~/config/winston';
 
 jest.mock('~/config/winston', () => ({
   error: jest.fn(),

@@ -24,10 +24,10 @@
  * the grace window the assertions allow.
  */
 
+import path from 'node:path';
+import { readFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
 import { Worker } from 'node:worker_threads';
 
 const PACKAGE_ROOT = path.resolve(import.meta.dirname, '../../..');

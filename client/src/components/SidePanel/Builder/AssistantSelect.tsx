@@ -17,6 +17,8 @@ import type {
   AssistantsEndpoint,
   AssistantCreateParams,
 } from 'librechat-data-provider';
+import type { UseMutationResult } from '@tanstack/react-query';
+import type { UseFormReset } from 'react-hook-form';
 import type {
   Actions,
   ExtendedFile,
@@ -24,8 +26,6 @@ import type {
   TAssistantOption,
   LastSelectedModels,
 } from '~/common';
-import type { UseMutationResult } from '@tanstack/react-query';
-import type { UseFormReset } from 'react-hook-form';
 import { useListAssistantsQuery } from '~/data-provider';
 import { useLocalize, useLocalStorage } from '~/hooks';
 import { cn, createDropdownSetter } from '~/utils';

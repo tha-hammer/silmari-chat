@@ -1,14 +1,13 @@
-import { renderHook, act } from '@testing-library/react';
 import { useQueryClient } from '@tanstack/react-query';
+import { renderHook, act } from '@testing-library/react';
+import { QueryKeys, Time } from 'librechat-data-provider';
 import { useHealthCheck } from '../connection';
-import { QueryKeys, Time, dataService } from 'librechat-data-provider';
 
 // Mock dependencies
 jest.mock('@tanstack/react-query');
 jest.mock('librechat-data-provider', () => ({
   QueryKeys: { health: 'health' },
   Time: { TEN_MINUTES: 600000, FIVE_MINUTES: 300000 },
-  dataService: { healthCheck: jest.fn() },
 }));
 
 jest.mock('~/utils', () => ({

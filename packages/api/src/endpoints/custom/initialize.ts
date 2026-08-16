@@ -3,6 +3,11 @@ import path from 'node:path';
 import { homedir } from 'node:os';
 import { Providers } from '@librechat/agents';
 import {
+  createToolPolicyHook,
+  createWorkspacePolicyHook,
+  extractCompileCheckPaths,
+} from '@librechat/agents';
+import {
   ErrorTypes,
   envVarRegex,
   EModelEndpoint,
@@ -11,6 +16,7 @@ import {
 } from 'librechat-data-provider';
 import type { TEndpoint } from 'librechat-data-provider';
 import type { AppConfig } from '@librechat/data-schemas';
+import type { HookCallback } from '@librechat/agents';
 import type {
   BaseInitializeParams,
   BamlInitializeResult,
@@ -20,13 +26,13 @@ import type {
   ClaudeAgentSdkInitializeResult,
   ServerRequest,
 } from '~/types';
-import { getLLMConfig as getAnthropicLLMConfig } from '~/endpoints/anthropic/llm';
-import { isBamlEndpoint, isClaudeAgentSdkEndpoint } from '~/endpoints/custom/provider';
 import {
   resolveToolApprovalPolicy,
   mapToolApprovalPolicy,
   isHITLEnabled,
 } from '~/agents/hitl/policy';
+import { isBamlEndpoint, isClaudeAgentSdkEndpoint } from '~/endpoints/custom/provider';
+import { getLLMConfig as getAnthropicLLMConfig } from '~/endpoints/anthropic/llm';
 import { extractDefaultParams } from '~/endpoints/openai/llm';
 import { isUserProvided, checkUserKeyExpiry } from '~/utils';
 import { getOpenAIConfig } from '~/endpoints/openai/config';
@@ -34,12 +40,6 @@ import { getScopedTokenConfigKey } from '~/endpoints/keys';
 import { getCustomEndpointConfig } from '~/app/config';
 import { createBamlFunctions } from '~/baml/loader';
 import { fetchModels } from '~/endpoints/models';
-import {
-  createToolPolicyHook,
-  createWorkspacePolicyHook,
-  extractCompileCheckPaths,
-} from '@librechat/agents';
-import type { HookCallback } from '@librechat/agents';
 import { validateEndpointURL } from '~/auth';
 import { tokenConfigCache } from '~/cache';
 

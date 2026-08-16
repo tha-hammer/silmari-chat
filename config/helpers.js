@@ -46,7 +46,7 @@ function isDockerRunning() {
   try {
     execSync('docker info');
     return true;
-  } catch (e) {
+  } catch {
     return false;
   }
 }

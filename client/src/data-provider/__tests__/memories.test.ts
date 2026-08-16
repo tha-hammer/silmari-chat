@@ -1,5 +1,5 @@
-import { dataService as _dataService } from 'librechat-data-provider';
 import axios from 'axios';
+import { dataService as _dataService } from 'librechat-data-provider';
 
 jest.mock('axios');
 

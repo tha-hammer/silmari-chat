@@ -1,7 +1,6 @@
 import { parentPort } from 'node:worker_threads';
 import { BamlCallContext } from '@boundaryml/baml-bridge';
 import type { MessagePort } from 'node:worker_threads';
-import type { TurnPlan, TurnPlan$stream } from './generated/baml_sdk/host/index.js';
 import type {
   StartRequest,
   WireFailure,
@@ -11,8 +10,7 @@ import type {
   WorkerMessage,
   WorkerRequest,
 } from './protocol';
-import { isAbort, isParseFailure, isTransport, messageOf } from './classify';
-import { assertManifestIsCallable, compiledClients } from './manifest';
+import type { TurnPlan, TurnPlan$stream } from './generated/baml_sdk/host/index.js';
 import {
   MODEL_ERROR_MESSAGE,
   PARSE_ERROR_MESSAGE,
@@ -21,6 +19,8 @@ import {
   toChunkCandidate,
   toWireToolSelection,
 } from './protocol';
+import { isAbort, isParseFailure, isTransport, messageOf } from './classify';
+import { assertManifestIsCallable, compiledClients } from './manifest';
 
 /**
  * The single-use native worker.

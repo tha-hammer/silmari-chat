@@ -270,6 +270,22 @@ export default [
     },
   },
   {
+    files: ['./baml_ts/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: './baml_ts/tsconfig.json',
+      },
+    },
+  },
+  {
+    files: ['./src/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: './src/tsconfig.eslint.json',
+      },
+    },
+  },
+  {
     // **Data-provider specific configuration block**
     files: ['./packages/data-provider/**/*.ts'],
     languageOptions: {

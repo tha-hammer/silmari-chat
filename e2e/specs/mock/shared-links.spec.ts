@@ -4,7 +4,6 @@ import type { Collection, ObjectId } from 'mongodb';
 import { applyRuntimeEnv } from '../../setup/runtimeEnv';
 import {
   MOCK_ENDPOINTS,
-  MOCK_REPLY_TEXT,
   NEW_CHAT_PATH,
   mockReply,
   selectMockEndpoint,
