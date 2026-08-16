@@ -3,8 +3,8 @@ import { useParams, useNavigate, Navigate } from 'react-router-dom';
 import { PermissionTypes, Permissions } from 'librechat-data-provider';
 import EmptyPromptPreview from '../display/EmptyPromptPreview';
 import CreatePromptForm from '../forms/CreatePromptForm';
-import { useHasAccess } from '~/hooks';
 import PromptForm from '../forms/PromptForm';
+import { useHasAccess } from '~/hooks';
 
 export default function InlinePromptsView() {
   const { promptId } = useParams();

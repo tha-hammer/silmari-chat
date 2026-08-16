@@ -1,8 +1,8 @@
 import React, { createRef } from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
-import BookmarkForm from '../BookmarkForm';
 import type { TConversationTag } from 'librechat-data-provider';
+import BookmarkForm from '../BookmarkForm';
 
 const mockMutate = jest.fn();
 const mockShowToast = jest.fn();

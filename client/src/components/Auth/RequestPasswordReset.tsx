@@ -1,12 +1,12 @@
-import { useForm } from 'react-hook-form';
 import { useState, ReactNode } from 'react';
+import { useForm } from 'react-hook-form';
 import { Spinner, Button } from '@librechat/client';
 import { useOutletContext } from 'react-router-dom';
-import { useRequestPasswordResetMutation } from 'librechat-data-provider/react-query';
 import { loginPage } from 'librechat-data-provider';
+import { useRequestPasswordResetMutation } from 'librechat-data-provider/react-query';
 import type { TRequestPasswordReset, TRequestPasswordResetResponse } from 'librechat-data-provider';
-import type { TLoginLayoutContext } from '~/common';
 import type { FC } from 'react';
+import type { TLoginLayoutContext } from '~/common';
 import { useLocalize } from '~/hooks';
 
 const BodyTextWrapper: FC<{ children: ReactNode }> = ({ children }) => {
