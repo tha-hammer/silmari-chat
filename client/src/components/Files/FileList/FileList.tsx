@@ -1,7 +1,6 @@
 import React from 'react';
 import type { TFile } from 'librechat-data-provider';
 import FileListItem2 from './FileListItem2';
-import FileListItem from './FileListItem';
 
 type FileListProps = {
   files: TFile[];
