@@ -88,16 +88,16 @@ Run the import-order checker after the import edits.
 
 ### Automated Verification
 
-- [ ] Red baseline: the three scoped partitions report exactly eight warnings.
-- [ ] Zero-warning lint: `node node_modules/eslint/bin/eslint.js --max-warnings 0 --ext .js,.jsx,.ts,.tsx --ignore-pattern '**/*.cjs' --ignore-pattern '**/*.mjs' api packages/api packages/data-schemas`.
-- [ ] Formatting: `npx prettier --check` on the six touched files.
-- [ ] Import ordering: `npm run sort-imports:check` reports all 3309 files sorted.
-- [ ] Diff hygiene: `git diff --check`.
-- [ ] Root `npm run lint` emits none of these eight warnings; final client status is coordinated with its owners.
+- [x] Red baseline: the three scoped partitions report exactly eight warnings.
+- [x] Zero-warning lint: `node node_modules/eslint/bin/eslint.js --max-warnings 0 --ext .js,.jsx,.ts,.tsx --ignore-pattern '**/*.cjs' --ignore-pattern '**/*.mjs' api packages/api packages/data-schemas`.
+- [x] Formatting: `npx prettier --check` on the six touched files.
+- [x] Import ordering: `npm run sort-imports:check` reports all 3309 files sorted.
+- [x] Diff hygiene: `git diff --check`.
+- [x] Root `npm run lint` emits none of these eight warnings; final client status is coordinated with its owners.
 
 ### Manual Verification
 
-- [ ] Diff review confirms only unused syntax and the benchmark fixture assertion changed.
+- [x] Diff review confirms only unused syntax and the benchmark fixture assertion changed.
 
 ## Testing Strategy
 

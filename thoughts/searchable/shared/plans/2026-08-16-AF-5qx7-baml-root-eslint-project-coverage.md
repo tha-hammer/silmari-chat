@@ -112,7 +112,7 @@ After the project mappings take effect, the same partition command exposes one u
 - [x] Target lint is green: `node node_modules/eslint/bin/eslint.js --ext .js,.jsx,.ts,.tsx --ignore-pattern '**/*.cjs' --ignore-pattern '**/*.mjs' baml_ts src`.
 - [x] Formatting is green: `npx prettier --check eslint.config.mjs src/tsconfig.eslint.json`.
 - [x] Import-order baseline remains green: `npm run sort-imports:check`.
-- [ ] Repository lint no longer fails `baml_ts` or `src`: `npm run lint` (final repository result coordinated with the other partitions).
+- [x] Repository lint no longer fails `baml_ts` or `src`: `npm run lint` (final repository result coordinated with the other partitions).
 
 #### Manual Verification
 
