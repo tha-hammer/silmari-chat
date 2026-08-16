@@ -11,6 +11,7 @@ import {
   SettingDefinition,
   agentParamSettings,
   applyModelAwareDefaults,
+  getDefaultParamsEndpoint,
 } from 'librechat-data-provider';
 import type * as t from 'librechat-data-provider';
 import type { AgentForm, AgentModelPanelProps, StringOption } from '~/common';
@@ -76,9 +77,9 @@ export default function ModelPanel({
   );
 
   const parameters = useMemo((): SettingDefinition[] => {
-    const customParams = endpointsConfig[provider]?.customParams ?? {};
     const [combinedKey, endpointKey] = getSettingsKeys(endpointType ?? provider, model ?? '');
-    const overriddenEndpointKey = customParams.defaultParamsEndpoint ?? endpointKey;
+    const overriddenEndpointKey =
+      getDefaultParamsEndpoint(endpointsConfig, provider) ?? endpointKey;
     const defaultParams =
       agentParamSettings[combinedKey] ?? agentParamSettings[overriddenEndpointKey] ?? [];
     const overriddenParams = endpointsConfig[provider]?.customParams?.paramDefinitions ?? [];

@@ -9,6 +9,7 @@ import {
   SettingDefinition,
   tConvoUpdateSchema,
   applyModelAwareDefaults,
+  getDefaultParamsEndpoint,
 } from 'librechat-data-provider';
 import type { TPreset } from 'librechat-data-provider';
 import { SaveAsPresetDialog } from '~/components/Endpoints';
@@ -40,9 +41,9 @@ export default function Parameters() {
   );
 
   const parameters = useMemo((): SettingDefinition[] => {
-    const customParams = endpointsConfig[provider]?.customParams ?? {};
     const [combinedKey, endpointKey] = getSettingsKeys(endpointType ?? provider, model);
-    const overriddenEndpointKey = customParams.defaultParamsEndpoint ?? endpointKey;
+    const overriddenEndpointKey =
+      getDefaultParamsEndpoint(endpointsConfig, provider) ?? endpointKey;
     const defaultParams = paramSettings[combinedKey] ?? paramSettings[overriddenEndpointKey] ?? [];
     const overriddenParams = endpointsConfig[provider]?.customParams?.paramDefinitions ?? [];
     const overriddenParamsMap = keyBy(overriddenParams, 'key');
