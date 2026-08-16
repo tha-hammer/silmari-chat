@@ -12,7 +12,6 @@ import {
 import type { TSkill, TSkillWarning, TUpdateSkillPayload } from 'librechat-data-provider';
 import { useGetSkillQuery, useUpdateSkillMutation } from '~/data-provider';
 import { useLocalize, useSkillPermissions } from '~/hooks';
-import InvocationModePicker from './InvocationModePicker';
 import SkillContentEditor from './SkillContentEditor';
 import CategorySelector from './CategorySelector';
 import DeleteSkill from '../dialogs/DeleteSkill';

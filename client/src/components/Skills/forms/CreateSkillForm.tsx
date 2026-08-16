@@ -10,7 +10,6 @@ import {
   SKILL_DESCRIPTION_MAX_LENGTH,
 } from 'librechat-data-provider';
 import type { TSkill, TCreateSkill, TSkillWarning } from 'librechat-data-provider';
-import InvocationModePicker from './InvocationModePicker';
 import { useCreateSkillMutation } from '~/data-provider';
 import SkillContentEditor from './SkillContentEditor';
 import CategorySelector from './CategorySelector';
