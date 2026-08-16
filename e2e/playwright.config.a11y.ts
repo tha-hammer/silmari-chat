@@ -1,18 +1,34 @@
-import { PlaywrightTestConfig } from '@playwright/test';
-import mainConfig from './playwright.config';
 import path from 'path';
-const absolutePath = path.resolve(process.cwd(), 'api/server/index.js');
 import dotenv from 'dotenv';
+import { devices } from '@playwright/test';
+import type { PlaywrightTestConfig } from '@playwright/test';
+import mainConfig from './playwright.config';
+
+const rootPath = path.resolve(__dirname, '..');
+const serverPath = path.resolve(rootPath, 'e2e/setup/start-server.js');
 dotenv.config();
+
+const chromiumChannel = process.env.E2E_CHROMIUM_CHANNEL || undefined;
 
 const config: PlaywrightTestConfig = {
   ...mainConfig,
   retries: 0,
   globalSetup: require.resolve('./setup/global-setup.local'),
   globalTeardown: require.resolve('./setup/global-teardown.local'),
+  projects: [
+    {
+      name: chromiumChannel ?? 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        ...(chromiumChannel ? { channel: chromiumChannel } : {}),
+      },
+    },
+  ],
   webServer: {
     ...mainConfig.webServer,
-    command: `node ${absolutePath}`,
+    command: `node ${serverPath}`,
+    cwd: rootPath,
+    reuseExistingServer: false,
     env: {
       ...process.env,
       SEARCH: 'false',
@@ -52,7 +68,7 @@ const config: PlaywrightTestConfig = {
   },
   fullyParallel: false, // if you are on Windows, keep this as `false`. On a Mac, `true` could make tests faster (maybe on some Windows too, just try)
   // workers: 1,
-  testMatch: /a11y/,
+  testMatch: 'a11y.spec.ts',
   // retries: 0,
 };
 
