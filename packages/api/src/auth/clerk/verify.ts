@@ -1,4 +1,7 @@
+import { createHash } from 'node:crypto';
 import { verifyToken } from '@clerk/backend';
+import { TokenVerificationError } from '@clerk/backend/errors';
+import { logger } from '@librechat/data-schemas';
 import type { ClerkAuthConfigEnabled } from './types';
 import { recordClerkTokenVerification } from '../../app/metrics';
 
@@ -68,13 +71,41 @@ function requireNumericDate(value: unknown): number {
   return value;
 }
 
+function getOptionalNonBlankString(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined;
+  }
+  const normalized = value.trim();
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+/**
+ * Clerk's shared `clerk.nolme.ai` instance is still on Session Token v1,
+ * which has no `jti` claim (added in v2, see
+ * https://clerk.com/changelog/2025-04-14-session-token-jwt-v2). Falling back
+ * to a hash of the raw token preserves the same replay-defense property
+ * (unique per token issuance, since Clerk mints a fresh token every ~60s)
+ * without requiring an instance-wide v2 upgrade that would also affect every
+ * other Cosmic product sharing that Clerk instance (tracked separately as
+ * AF-rd7v). Prefers `jti` when present so this is a no-op once v2 is
+ * eventually adopted.
+ */
+function deriveClerkTokenId(claims: { [claim: string]: unknown }, rawToken: string): string {
+  const jti = getOptionalNonBlankString(claims.jti);
+  if (jti) {
+    return jti;
+  }
+  return createHash('sha256').update(rawToken).digest('hex');
+}
+
 function normalizeVerifiedClaims(
   claims: { [claim: string]: unknown },
   authorizedParties: readonly string[],
+  rawToken: string,
 ): VerifiedClerkIdentity {
   const clerkId = requireNonBlankString(claims.sub);
   const clerkSessionId = requireNonBlankString(claims.sid);
-  const clerkTokenId = requireNonBlankString(claims.jti);
+  const clerkTokenId = deriveClerkTokenId(claims, rawToken);
   const authorizedParty = requireNonBlankString(claims.azp);
   requireNonBlankString(claims.iss);
 
@@ -113,6 +144,8 @@ export async function verifyClerkSessionToken(
 ): Promise<VerifiedClerkIdentity> {
   const startedAt = process.hrtime.bigint();
   let outcome: 'success' | 'invalid' = 'invalid';
+  let stage: 'clerk_verify' | 'claim_normalize' = 'clerk_verify';
+  let verifiedClaims: { [claim: string]: unknown } | undefined;
 
   try {
     const claims = await verifyToken(token, {
@@ -120,11 +153,33 @@ export async function verifyClerkSessionToken(
       authorizedParties: [...config.authorizedParties],
       clockSkewInMs: CLERK_CLOCK_SKEW_MS,
     });
+    verifiedClaims = claims;
 
-    const identity = normalizeVerifiedClaims(claims, config.authorizedParties);
+    stage = 'claim_normalize';
+    const identity = normalizeVerifiedClaims(claims, config.authorizedParties, token);
     outcome = 'success';
     return identity;
-  } catch {
+  } catch (error) {
+    logger.warn('[verifyClerkSessionToken] rejected', {
+      stage,
+      name: error instanceof Error ? error.name : typeof error,
+      message: error instanceof Error ? error.message : undefined,
+      reason: error instanceof TokenVerificationError ? error.reason : undefined,
+      authorizedParties: config.authorizedParties,
+      claims:
+        stage === 'claim_normalize' && verifiedClaims
+          ? {
+              sub: verifiedClaims.sub,
+              sid: verifiedClaims.sid,
+              jti: verifiedClaims.jti,
+              azp: verifiedClaims.azp,
+              iss: verifiedClaims.iss,
+              sts: verifiedClaims.sts,
+              iat: verifiedClaims.iat,
+              exp: verifiedClaims.exp,
+            }
+          : undefined,
+    });
     throw invalidToken();
   } finally {
     recordClerkTokenVerification(outcome, getElapsedSeconds(startedAt));

@@ -1,4 +1,4 @@
-import { createSign, generateKeyPairSync } from 'node:crypto';
+import { createHash, createSign, generateKeyPairSync } from 'node:crypto';
 import type { KeyObject } from 'node:crypto';
 import {
   CLERK_CLOCK_SKEW_MS,
@@ -80,6 +80,28 @@ describe('verifyClerkSessionToken', () => {
     expect(recordClerkTokenVerificationMock).toHaveBeenCalledWith('success', expect.any(Number));
   });
 
+  it('derives clerkTokenId from a hash of the raw token when jti is absent (Session Token v1)', async () => {
+    const token = signToken({ jti: undefined });
+    const identity = await verifyClerkSessionToken(token, config);
+    const expectedHash = createHash('sha256').update(token).digest('hex');
+
+    expect(identity.clerkTokenId).toBe(expectedHash);
+    expect(identity.clerkTokenId).not.toBe('token_123');
+  });
+
+  it('derives a different clerkTokenId for a different v1 token, preserving replay-defense uniqueness', async () => {
+    const first = await verifyClerkSessionToken(
+      signToken({ jti: undefined, iat: NOW_SECONDS - 30 }),
+      config,
+    );
+    const second = await verifyClerkSessionToken(
+      signToken({ jti: undefined, iat: NOW_SECONDS - 20 }),
+      config,
+    );
+
+    expect(first.clerkTokenId).not.toBe(second.clerkTokenId);
+  });
+
   it('accepts default Clerk session tokens without an audience claim', async () => {
     await expect(verifyClerkSessionToken(signToken({ aud: undefined }), config)).resolves.toEqual(
       expect.objectContaining({ clerkId: 'user_123' }),
@@ -101,8 +123,6 @@ describe('verifyClerkSessionToken', () => {
     ['sub', '   '],
     ['sid', undefined],
     ['sid', '   '],
-    ['jti', undefined],
-    ['jti', '   '],
     ['azp', undefined],
     ['azp', '   '],
     ['iat', undefined],
