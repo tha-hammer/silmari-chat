@@ -484,6 +484,7 @@ function resolveSummarizationProvider(
   rawProvider: string,
   appConfig: AppConfig | undefined,
   headerContext: { user?: IUser; requestBody?: t.RequestBody },
+  agentEndpoint?: string,
 ): {
   provider: string;
   clientOverrides?: SummarizationClientOverrides;
@@ -492,8 +493,16 @@ function resolveSummarizationProvider(
     return { provider: rawProvider };
   }
   try {
+    /**
+     * `endpoint` matches `agents/initialize.ts`'s own call
+     * (`getProviderConfig({provider, endpoint: agent.endpoint ?? provider, ...})`):
+     * required for provider-discriminator re-entry (BAML, Claude Agent SDK —
+     * see `getProviderConfig`'s own doc comment), falls back to `rawProvider`
+     * itself for built-in providers that have no named custom endpoint at all.
+     */
     const { overrideProvider, customEndpointConfig } = getProviderConfig({
       provider: rawProvider,
+      endpoint: agentEndpoint ?? rawProvider,
       appConfig,
     });
     if (!customEndpointConfig) {
@@ -648,7 +657,22 @@ function shapeSummarizationConfig(
 
   const { provider, clientOverrides } = isSameEndpointAsAgent
     ? { provider: fallbackProvider, clientOverrides: undefined }
-    : resolveSummarizationProvider(rawProvider, appConfig, headerContext);
+    : resolveSummarizationProvider(rawProvider, appConfig, headerContext, agentEndpoint);
+
+  /**
+   * Claude Agent SDK can never summarize itself. Every other provider here is
+   * a stateless completion API: one extra call, however it's routed, is just
+   * another request. This one is a stateful `claude` CLI subprocess tied to
+   * one on-disk session per `thread_id` (`ChatClaudeAgentSDK`'s own session
+   * registry) — a second invocation sharing that same `thread_id` races the
+   * first for the same session (confirmed live: two subprocess spawns for one
+   * turn, the second failing `--resume` with "no conversation found" because
+   * the first's transcript wasn't durable yet). It's also redundant even when
+   * it doesn't race: the `claude` CLI already manages its own context
+   * compaction internally, so this repo's own summarization pass has nothing
+   * useful to do here regardless.
+   */
+  const isClaudeAgentSdk = provider === Providers.CLAUDE_AGENT_SDK;
 
   const model = config?.model ?? fallbackModel;
   const trigger =
@@ -676,7 +700,11 @@ function shapeSummarizationConfig(
       : config?.parameters;
 
   return {
-    enabled: config?.enabled !== false && isNonEmptyString(provider) && isNonEmptyString(model),
+    enabled:
+      !isClaudeAgentSdk &&
+      config?.enabled !== false &&
+      isNonEmptyString(provider) &&
+      isNonEmptyString(model),
     config: {
       trigger,
       provider,

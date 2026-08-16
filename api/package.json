@@ -47,7 +47,7 @@
     "@clerk/backend": "3.16.4",
     "@google/genai": "^2.8.0",
     "@keyv/redis": "^4.3.3",
-    "@librechat/agents": "git+https://github.com/tha-hammer/silmari-chat-agents.git#2251771260c7c48c8790e510d5ab056c1b160ae1",
+    "@librechat/agents": "git+https://github.com/tha-hammer/silmari-chat-agents.git#0713b9a1badf947d5216e0cb3850b7eba00f3ea1",
     "@librechat/api": "*",
     "@librechat/data-schemas": "*",
     "@microsoft/microsoft-graph-client": "^3.0.7",

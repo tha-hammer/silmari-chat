@@ -394,6 +394,42 @@ describe('summarizationEnabled resolution', () => {
     expect(config.provider).toBe('openAI');
     expect(config.model).toBe('gpt-4o');
   });
+
+  /**
+   * Regression: a Claude Agent SDK agent's own subprocess is stateful and
+   * session-scoped per thread_id (ChatClaudeAgentSDK's session registry) --
+   * a second same-provider invocation for self-summarize shares that
+   * thread_id and races the main turn's session, confirmed live as
+   * "No conversation found" on a brand-new conversation's very first message
+   * (two subprocess spawns, the second's --resume failing because the
+   * first's transcript wasn't durable yet). It's also redundant: the claude
+   * CLI already manages its own context compaction internally.
+   */
+  it('false with self-summarize default when the agent provider is claudeAgentSdk', async () => {
+    const agents = await callAndCapture({
+      agents: [
+        makeAgent({
+          provider: 'claudeAgentSdk',
+          endpoint: 'Claude Agent SDK',
+          model: 'default',
+          model_parameters: { model: 'default' },
+        }),
+      ],
+      summarizationConfig: undefined,
+    });
+    expect(agents[0].summarizationEnabled).toBe(false);
+  });
+
+  it('false even when an admin explicitly configures summarization.provider: claudeAgentSdk', async () => {
+    const agents = await callAndCapture({
+      summarizationConfig: {
+        enabled: true,
+        provider: 'claudeAgentSdk',
+        model: 'default',
+      },
+    });
+    expect(agents[0].summarizationEnabled).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
