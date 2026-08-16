@@ -62,13 +62,13 @@ import {
   registerFileAuthoringTools,
   isFileAuthoringToolDefinition,
 } from './tools';
+import { isBamlInitializeResult, isClaudeAgentSdkInitializeResult } from '~/types';
 import { registerMemoryTools, memoryToolUsageGuard } from './memory';
 import { applyIntentLabels, sanitizeIntentLabels } from './intent';
 import { setAgentRuntimeOptions } from '~/agents/runtime';
 import { applyBackgroundToolCalls } from './background';
 import { filterFilesByEndpointConfig } from '~/files';
 import { generateArtifactsPrompt } from '~/prompts';
-import { isBamlInitializeResult, isClaudeAgentSdkInitializeResult } from '~/types';
 import { getProviderConfig } from '~/endpoints';
 import { primeResources } from './resources';
 

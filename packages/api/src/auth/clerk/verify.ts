@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { verifyToken } from '@clerk/backend';
-import { TokenVerificationError } from '@clerk/backend/errors';
 import { logger } from '@librechat/data-schemas';
+import { TokenVerificationError } from '@clerk/backend/errors';
 import type { ClerkAuthConfigEnabled } from './types';
 import { recordClerkTokenVerification } from '../../app/metrics';
 

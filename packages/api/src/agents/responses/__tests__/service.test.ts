@@ -1,5 +1,5 @@
-import { convertInputToMessages } from '../service';
 import type { InputItem } from '../types';
+import { convertInputToMessages } from '../service';
 
 describe('convertInputToMessages', () => {
   // ── String input shorthand ─────────────────────────────────────────

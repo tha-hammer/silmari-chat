@@ -12,29 +12,29 @@
 // baml-cli is available with the baml package.
 
 import { BamlTypeMap } from "@boundaryml/baml-bridge";
-import * as __leaf_0 from "./baml/index.js";
-import * as __leaf_1 from "./baml/csv/index.js";
+import * as __leaf_21 from "./vendor/boundary/index.js";
+import * as __leaf_22 from "./vendor/testing/index.js";
+import * as __leaf_13 from "./baml/panics/index.js";
+import * as __leaf_15 from "./baml/stream/index.js";
 import * as __leaf_2 from "./baml/errors/index.js";
-import * as __leaf_3 from "./baml/fs/index.js";
 import * as __leaf_4 from "./baml/future/index.js";
+import * as __leaf_11 from "./baml/media/index.js";
+import * as __leaf_14 from "./baml/spawn/index.js";
+import * as __leaf_17 from "./baml/time/index.js";
+import * as __leaf_18 from "./baml/toml/index.js";
+import * as __leaf_19 from "./baml/yaml/index.js";
 import * as __leaf_5 from "./baml/glob/index.js";
 import * as __leaf_6 from "./baml/host/index.js";
 import * as __leaf_7 from "./baml/http/index.js";
 import * as __leaf_8 from "./baml/iter/index.js";
 import * as __leaf_9 from "./baml/json/index.js";
 import * as __leaf_10 from "./baml/llm/index.js";
-import * as __leaf_11 from "./baml/media/index.js";
 import * as __leaf_12 from "./baml/net/index.js";
-import * as __leaf_13 from "./baml/panics/index.js";
-import * as __leaf_14 from "./baml/spawn/index.js";
-import * as __leaf_15 from "./baml/stream/index.js";
 import * as __leaf_16 from "./baml/sys/index.js";
-import * as __leaf_17 from "./baml/time/index.js";
-import * as __leaf_18 from "./baml/toml/index.js";
-import * as __leaf_19 from "./baml/yaml/index.js";
+import * as __leaf_1 from "./baml/csv/index.js";
+import * as __leaf_3 from "./baml/fs/index.js";
 import * as __leaf_20 from "./host/index.js";
-import * as __leaf_21 from "./vendor/boundary/index.js";
-import * as __leaf_22 from "./vendor/testing/index.js";
+import * as __leaf_0 from "./baml/index.js";
 
 const _CLASS_ENTRIES: Record<string, () => unknown> = {
   "baml.Array": () => (__leaf_0 as Record<string, unknown>)["Array"],

@@ -20,10 +20,10 @@
  *   node packages/api/src/baml/runtime.acceptance.mjs
  */
 
+import path from 'node:path';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
 import { pathToFileURL } from 'node:url';
-import path from 'node:path';
 
 const PACKAGE_ROOT = path.resolve(import.meta.dirname, '../..');
 const RUNTIME_URL = pathToFileURL(path.join(PACKAGE_ROOT, 'dist/baml/runtime.mjs')).href;

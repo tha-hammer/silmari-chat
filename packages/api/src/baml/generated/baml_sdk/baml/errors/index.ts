@@ -11,8 +11,8 @@
 // BAML files and re-generate this code using: baml-cli generate
 // baml-cli is available with the baml package.
 
-import type { BamlHandle as _BamlHandle } from "@boundaryml/baml-bridge";
 import { defineInstanceFunction } from "@boundaryml/baml-bridge";
+import type { BamlHandle as _BamlHandle } from "@boundaryml/baml-bridge";
 
 /**
  * The temporal context of a thrown error: the error value itself, where it
