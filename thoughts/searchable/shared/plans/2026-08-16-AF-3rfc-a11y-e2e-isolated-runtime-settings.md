@@ -76,10 +76,10 @@ No repository files change in this phase.
 
 #### Automated Verification
 
-- [ ] `node --version` prints `v24.16.0`.
-- [ ] `google-chrome --version` succeeds.
-- [ ] `ss -ltn '( sport = :43127 )'` has no listening entry before the full run.
-- [ ] The already-recorded safe RED command below reports 19 tests in 11 files and `[chromium]` labels:
+- [x] `node --version` prints `v24.16.0`.
+- [x] `google-chrome --version` succeeds.
+- [x] `ss -ltn '( sport = :43127 )'` has no listening entry before the full run.
+- [x] The already-recorded safe RED command below reports 19 tests in 11 files and `[chromium]` labels:
 
   ```bash
   NODE_PATH=/home/maceo/Dev/silmari-chat/node_modules \
@@ -89,11 +89,11 @@ No repository files change in this phase.
     /home/maceo/Dev/silmari-chat/node_modules/.bin/playwright \
     test --config=e2e/playwright.config.a11y.ts --list
   ```
-- [ ] No command sends an HTTP request to port 3080.
+- [x] No command sends an HTTP request to port 3080.
 
 #### Manual Verification
 
-- [ ] The recorded RED output is attributable to absolute-path matching and the missing worker-channel override, not to server startup or browser execution.
+- [x] The recorded RED output is attributable to absolute-path matching and the missing worker-channel override, not to server startup or browser execution.
 
 ## Phase 2: Align the a11y Spec and Config
 
@@ -131,16 +131,16 @@ This keeps `e2e/setup/env.ts` as the single source of the configured base URL th
 
 #### Automated Verification
 
-- [ ] `! rg -n "localhost:3080|api/server/index\\.js|testMatch: /a11y/" e2e/specs/a11y.spec.ts e2e/playwright.config.a11y.ts` exits 0.
-- [ ] `rg -n "page\\.goto\\('/'|start-server\\.js|reuseExistingServer: false|testMatch: 'a11y\\.spec\\.ts'|E2E_CHROMIUM_CHANNEL" e2e/specs/a11y.spec.ts e2e/playwright.config.a11y.ts` finds every intended contract.
-- [ ] `npx prettier --check e2e/specs/a11y.spec.ts e2e/playwright.config.a11y.ts` passes.
-- [ ] `npx eslint e2e/specs/a11y.spec.ts e2e/playwright.config.a11y.ts` passes.
-- [ ] `node scripts/sort-imports.mts --check e2e/specs/a11y.spec.ts e2e/playwright.config.a11y.ts` passes.
+- [x] `! rg -n "localhost:3080|api/server/index\\.js|testMatch: /a11y/" e2e/specs/a11y.spec.ts e2e/playwright.config.a11y.ts` exits 0.
+- [x] `rg -n "page\\.goto\\('/'|start-server\\.js|reuseExistingServer: false|testMatch: 'a11y\\.spec\\.ts'|E2E_CHROMIUM_CHANNEL" e2e/specs/a11y.spec.ts e2e/playwright.config.a11y.ts` finds every intended contract.
+- [x] `npx prettier --check e2e/specs/a11y.spec.ts e2e/playwright.config.a11y.ts` passes.
+- [x] `npx eslint e2e/specs/a11y.spec.ts e2e/playwright.config.a11y.ts` passes.
+- [x] `node scripts/sort-imports.mts --check e2e/specs/a11y.spec.ts e2e/playwright.config.a11y.ts` exits 0. The script excludes `e2e` from its source roots, so two independent reviewers also checked the imports manually against `CLAUDE.md`.
 
 #### Manual Verification
 
-- [ ] The diff contains no production code, document mutation, or unrelated E2E spec changes.
-- [ ] The a11y config remains a specialization of `mainConfig`, and a diff comparison confirms every pre-existing env key/value is preserved.
+- [x] The diff contains no production code, document mutation, or unrelated E2E spec changes.
+- [x] The a11y config remains a specialization of `mainConfig`, and a diff comparison confirms every pre-existing env key/value is preserved.
 
 ## Phase 3: Isolated Config and Full-Suite Validation
 
@@ -165,9 +165,9 @@ No additional repository code is expected in this phase; failures are resolved w
 
 #### Automated Verification
 
-- [ ] `npm ci` exits 0 without changing tracked dependency manifests or the lockfile.
-- [ ] `E2E_BASE_URL=http://127.0.0.1:43127 E2E_USE_MEMORY_MONGO=true E2E_CHROMIUM_CHANNEL=chrome npx playwright test --config=e2e/playwright.config.a11y.ts --list` exits 0 with exactly four tests in one file, all labeled `[chrome]`.
-- [ ] The exact headed script is attempted with fresh evidence paths:
+- [x] `npm ci` exits 0 without changing tracked dependency manifests or the lockfile.
+- [x] `E2E_BASE_URL=http://127.0.0.1:43127 E2E_USE_MEMORY_MONGO=true E2E_CHROMIUM_CHANNEL=chrome npx playwright test --config=e2e/playwright.config.a11y.ts --list` exits 0 with exactly four tests in one file, all labeled `[chrome]`.
+- [x] The exact headed script is attempted with fresh evidence paths:
 
   ```bash
   set -o pipefail
@@ -181,15 +181,17 @@ No additional repository code is expected in this phase; failures are resolved w
   ```
 
 - [ ] Desired result: the exact script exits 0 with four passing tests. If an auth/axe assertion fails only after the isolated harness chain is proven, record the exact failure separately and do not broaden AF-3rfc or report the suite green.
-- [ ] Full-run logs contain `using baseURL http://127.0.0.1:43127` and `[e2e] Started memory MongoDB` with a non-27017 port.
-- [ ] The fresh runtime-env file records the same loopback ephemeral memory-Mongo URI and uses neither port 27017 nor 3080.
-- [ ] `git diff --check` exits 0.
-- [ ] Final source grep finds no direct port-3080 target in the a11y spec/config.
+  - Observed result: `1 passed`, `3 failed` in 2.0 minutes. Landing and conversation exposed existing axe violations; input-form scanning found no matching `form`. The HTML reporter held the CLI open after teardown and was terminated after the non-green summary was preserved.
+  - Evidence: `/tmp/af-3rfc-a11y.M3HCK1` and `/tmp/af-3rfc-runtime-env.SXcbhy`.
+- [x] Full-run logs contain `using baseURL http://127.0.0.1:43127` and `[e2e] Started memory MongoDB` with a non-27017 port.
+- [x] The fresh runtime-env file records the same loopback ephemeral memory-Mongo URI and uses neither port 27017 nor 3080.
+- [x] `git diff --check` exits 0.
+- [x] Final source grep finds no direct port-3080 target in the a11y spec/config.
 
 #### Manual Verification
 
-- [ ] The port-3080 listener remains untouched; no validation command was addressed to it.
-- [ ] Failure cleanup leaves no listener on port 43127 and no memory-Mongo child process.
+- [x] The port-3080 listener remains untouched; no validation command was addressed to it.
+- [x] Failure cleanup leaves no listener on port 43127 and no memory-Mongo child process.
 
 ## Testing Strategy
 
