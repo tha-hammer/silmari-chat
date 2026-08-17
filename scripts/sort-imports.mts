@@ -46,6 +46,7 @@ const SKIP_DIR_NAMES = new Set([
   '.turbo',
   'data',
   'demo',
+  'generated',
 ]);
 
 const args = process.argv.slice(2);
